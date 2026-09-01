@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  # ── MongoDB ──────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: nirikshan-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+
+  # ── Backend (uncomment when ready to containerize) ──────
+  # backend:
+  #   build: ./server
+  #   container_name: nirikshan-backend
+  #   ports:
+  #     - "5000:5000"
+  #   env_file: .env
+  #   depends_on:
+  #     - mongo
+
+  # ── ML Service (uncomment when ready to containerize) ───
+  # ml:
+  #   build: ./ml
+  #   container_name: nirikshan-ml
+  #   ports:
+  #     - "8000:8000"
+
+volumes:
+  mongo-data:

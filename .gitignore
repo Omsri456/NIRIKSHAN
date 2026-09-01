@@ -1,0 +1,70 @@
+# ========================
+# Node.js
+# ========================
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+*.egg
+venv/
+.venv/
+env/
+ml/models/*.pkl
+ml/models/*.joblib
+
+# ========================
+# Environment / Secrets
+# ========================
+.env
+.env.local
+.env.production
+
+# ========================
+# IDE
+# ========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ========================
+# Docker
+# ========================
+mongo-data/
+
+# ========================
+# Data — raw source files stay out of Git
+# ========================
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# ========================
+# Logs
+# ========================
+*.log
+logs/
+
+# ========================
+# Coverage / Testing
+# ========================
+coverage/
+.nyc_output/
