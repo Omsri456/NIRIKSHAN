@@ -7,7 +7,7 @@ export interface IDataImport extends Document {
   totalRecords: number;
   processedRecords: number;
   errorCount: number;
-  errors: string[];
+  errorMessages: string[];
   importedBy: mongoose.Types.ObjectId;
   startedAt: Date;
   completedAt: Date | null;
@@ -25,7 +25,7 @@ const DataImportSchema = new Schema<IDataImport>(
     totalRecords: { type: Number, default: 0 },
     processedRecords: { type: Number, default: 0 },
     errorCount: { type: Number, default: 0 },
-    errors: [{ type: String }],
+    errorMessages: [{ type: String }],
     importedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     startedAt: { type: Date, default: Date.now },
     completedAt: { type: Date, default: null },

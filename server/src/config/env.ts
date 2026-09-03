@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { z } from 'zod';
 
-dotenv.config({ path: '../.env' });
+dotenv.config({ path: '../.env', override: true });
 
 const envSchema = z.object({
   PORT: z.string().default('5000'),

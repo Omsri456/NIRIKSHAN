@@ -52,7 +52,7 @@ export async function getAnomalyScores(request: AnomalyScoreRequest): Promise<An
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
     });
-    return await response.json();
+    return (await response.json()) as AnomalyScoreResponse;
   } catch (error) {
     console.error('ML service anomaly-score call failed:', error);
     return {
@@ -69,7 +69,7 @@ export async function getSimilarWorks(request: SimilarityRequest): Promise<Simil
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
     });
-    return await response.json();
+    return (await response.json()) as SimilarityResponse;
   } catch (error) {
     console.error('ML service similarity call failed:', error);
     return {

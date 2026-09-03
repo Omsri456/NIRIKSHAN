@@ -55,7 +55,7 @@ export interface DataImport {
   totalRecords: number;
   processedRecords: number;
   errorCount: number;
-  errors: string[];
+  errorMessages: string[];
   importedBy: string;
   startedAt: string;
   completedAt: string | null;

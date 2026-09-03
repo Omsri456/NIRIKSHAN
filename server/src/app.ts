@@ -2,9 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { env } from './config/env';
-import { connectDB } from './config/db';
-import { errorHandler } from './middleware/errorHandler';
 
 // Route imports
 import authRoutes from './routes/auth.routes';
@@ -13,6 +10,9 @@ import worksRoutes from './routes/works.routes';
 import riskRoutes from './routes/risk.routes';
 import investigationsRoutes from './routes/investigations.routes';
 import dataImportsRoutes from './routes/dataImports.routes';
+
+// Middleware imports
+import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
 
@@ -24,7 +24,7 @@ app.use(express.json({ limit: '10mb' }));
 
 // ── Health Check ─────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
-  res.json({ success: true, data: { status: 'ok', service: 'nirikshan-backend' } });
+  res.json({ success: true, data: { status: 'ok' } });
 });
 
 // ── API Routes (matching 05-API.md) ──────────────────────
@@ -46,21 +46,4 @@ app.use((_req, res) => {
 // ── Error Handler ────────────────────────────────────────
 app.use(errorHandler);
 
-// ── Start Server ─────────────────────────────────────────
-async function start() {
-  await connectDB();
-  app.listen(parseInt(env.PORT), () => {
-    console.log(`
-    ╔══════════════════════════════════════════╗
-    ║   NIRIKSHAN Backend                      ║
-    ║   Port: ${env.PORT}                            ║
-    ║   Env:  ${env.NODE_ENV}                  ║
-    ╚══════════════════════════════════════════╝
-    `);
-  });
-}
-
-start().catch((err) => {
-  console.error('❌ Failed to start server:', err);
-  process.exit(1);
-});
+export default app;
