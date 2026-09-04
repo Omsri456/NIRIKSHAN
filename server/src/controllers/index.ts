@@ -1,5 +1,10 @@
 // ============================================================
-// Controllers — Route handler logic extracted from routes/
+// Controllers — thin HTTP handlers that call services
 // ============================================================
-// TODO: Extract business logic from routes/ into controller functions
-// to keep routes thin and controllers testable independently.
+
+export * as authController from './auth.controller';
+export * as dashboardController from './dashboard.controller';
+export * as workController from './work.controller';
+export * as riskController from './risk.controller';
+export * as investigationController from './investigation.controller';
+export * as dataImportController from './dataImport.controller';
