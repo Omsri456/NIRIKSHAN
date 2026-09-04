@@ -1,10 +1,10 @@
 import app from './app';
 import { env } from './config/env';
-// import { connectDB } from './config/db';
+import { connectDB } from './config/db';
 
 async function start() {
-  // ── MongoDB (disabled until foundation is verified) ──
-  // await connectDB();
+  // ── MongoDB ──
+  await connectDB();
 
   const PORT = parseInt(env.PORT, 10);
 
