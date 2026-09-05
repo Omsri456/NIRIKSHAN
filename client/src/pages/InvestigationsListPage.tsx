@@ -107,7 +107,15 @@ export function InvestigationsListPage() {
                     <tr
                       key={inv._id}
                       className="clickable"
+                      tabIndex={0}
+                      role="link"
                       onClick={() => navigate(`/investigations/${inv._id}`)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          navigate(`/investigations/${inv._id}`);
+                        }
+                      }}
                     >
                       <td className="mono cell-primary">{inv.workId}</td>
                       <td>

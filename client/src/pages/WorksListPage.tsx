@@ -136,7 +136,15 @@ export function WorksListPage() {
                     <tr
                       key={work._id}
                       className="clickable"
+                      tabIndex={0}
+                      role="link"
                       onClick={() => navigate(`/works/${work.workId}`)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          navigate(`/works/${work.workId}`);
+                        }
+                      }}
                     >
                       <td className="mono cell-secondary">{work.workId}</td>
                       <td className="cell-primary">{work.description}</td>

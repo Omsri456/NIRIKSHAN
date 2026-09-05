@@ -80,15 +80,6 @@ export function LoginPage() {
               {isSubmitting ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
-
-          <div className="login-hint">
-            Demo accounts (seeded via <strong>npm run seed</strong>), password{' '}
-            <strong>password123</strong>:
-            <br />
-            <strong>ministry@nirikshan.gov.in</strong> · <strong>state.mh@nirikshan.gov.in</strong>
-            <br />
-            <strong>district.mumbai@nirikshan.gov.in</strong> · <strong>mp@nirikshan.gov.in</strong>
-          </div>
         </div>
       </div>
     </div>

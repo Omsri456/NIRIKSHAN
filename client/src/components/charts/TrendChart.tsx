@@ -53,9 +53,10 @@ export function TrendChart({ data }: { data: TrendDataPoint[] }) {
           type="monotone"
           dataKey="expenditure"
           name="Expenditure"
-          stroke="var(--navy-800)"
+          stroke="var(--teal-500)"
           strokeWidth={2}
-          dot={false}
+          dot={{ r: 2, fill: 'var(--teal-500)', strokeWidth: 0 }}
+          activeDot={{ r: 4, strokeWidth: 0 }}
         />
         <Line
           yAxisId="right"
@@ -64,7 +65,8 @@ export function TrendChart({ data }: { data: TrendDataPoint[] }) {
           name="Avg. risk score"
           stroke="var(--amber-500)"
           strokeWidth={2}
-          dot={false}
+          dot={{ r: 2, fill: 'var(--amber-500)', strokeWidth: 0 }}
+          activeDot={{ r: 4, strokeWidth: 0 }}
           strokeDasharray="4 3"
         />
       </LineChart>

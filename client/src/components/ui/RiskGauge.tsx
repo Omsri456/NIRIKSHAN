@@ -15,7 +15,13 @@ export function RiskGauge({ score, level, size = 108 }: RiskGaugeProps) {
   const color = RISK_LEVEL_COLORS[level as RiskLevel] ?? 'var(--slate-400)';
 
   return (
-    <svg width={size} height={size / 2 + 12} viewBox={`0 0 ${size} ${size / 2 + 12}`}>
+    <svg
+      width={size}
+      height={size / 2 + 12}
+      viewBox={`0 0 ${size} ${size / 2 + 12}`}
+      role="img"
+      aria-label={`Risk score ${Math.round(clamped)}, ${String(level).toLowerCase()} level`}
+    >
       <path
         d={`M 8 ${size / 2} A ${radius} ${radius} 0 0 1 ${size - 8} ${size / 2}`}
         fill="none"

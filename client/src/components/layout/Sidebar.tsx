@@ -14,7 +14,7 @@ export function Sidebar() {
         <div className="sidebar-brand-mark">NIRIKSHAN</div>
         <div className="sidebar-brand-sub">MPLADS Risk Intelligence</div>
       </div>
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" aria-label="Primary navigation">
         {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}

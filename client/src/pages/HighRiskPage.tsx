@@ -82,7 +82,15 @@ export function HighRiskPage() {
                     <tr
                       key={assessment._id}
                       className="clickable"
+                      tabIndex={0}
+                      role="link"
                       onClick={() => navigate(`/works/${assessment.workId}`)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          navigate(`/works/${assessment.workId}`);
+                        }
+                      }}
                     >
                       <td className="mono cell-primary">{assessment.workId}</td>
                       <td className="mono">{assessment.score}</td>
