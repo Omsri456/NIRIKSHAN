@@ -2,7 +2,7 @@ import { WorkModel } from '../models/Work';
 import { ExpenditureModel } from '../models/Expenditure';
 import { RiskAssessmentModel } from '../models/RiskAssessment';
 import { AppError, buildSortObject, escapeRegex } from '../utils';
-import { getSimilarWorks as mlGetSimilar } from './mlClient';
+import { getSimilarWorks as mlGetSimilar, getAnomalyScores } from './mlClient';
 
 /**
  * Query params accepted by the works list endpoint after validation.
@@ -126,4 +126,57 @@ export async function getSimilarWorks(workId: string): Promise<Array<{ workId: s
     // ML service unreachable — graceful degradation
     return [];
   }
+}
+
+/**
+ * POST /api/works/:workId/analyze-risk
+ * Explicit on-demand risk analysis calling ML getAnomalyScores and persisting updated RiskAssessment to MongoDB.
+ */
+export async function analyzeWorkRisk(workId: string) {
+  const work = await WorkModel.findOne({ workId }).lean();
+  if (!work) {
+    throw new AppError(404, 'WORK_NOT_FOUND', 'Work could not be found.');
+  }
+
+  const recDate = work.recommendation?.date ? new Date(work.recommendation.date) : new Date();
+  const compDate = work.execution?.completionDate ? new Date(work.execution.completionDate) : null;
+  const durationDays = compDate
+    ? Math.max(1, Math.round((compDate.getTime() - recDate.getTime()) / (1000 * 3600 * 24)))
+    : Math.max(1, Math.round((Date.now() - recDate.getTime()) / (1000 * 3600 * 24)));
+
+  const features: Record<string, number> = {
+    recommendedAmount: work.recommendation?.amount || 0,
+    finalAmount: work.financial?.finalAmount || 0,
+    totalExpenditure: work.financial?.totalExpenditure || 0,
+    durationDays,
+    daysSinceRecommendation: durationDays,
+  };
+
+  const mlRes = await getAnomalyScores({ workId, features });
+
+  const signals = (mlRes.data?.signals || []).map((s) => ({
+    type: s.type,
+    score: s.score,
+    severity: s.score >= 0.75 ? 'HIGH' : s.score >= 0.5 ? 'MEDIUM' : 'LOW',
+    explanation: `${s.type.replace(/_/g, ' ')} detected with score ${(s.score * 100).toFixed(0)}%`,
+    evidence: { workId, features },
+  }));
+
+  const avgSignalScore = signals.length > 0
+    ? signals.reduce((acc, curr) => acc + curr.score, 0) / signals.length
+    : 0.1;
+  const overallScore = Math.min(Math.max(Math.round(avgSignalScore * 100), 0), 100);
+  const level: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' =
+    overallScore >= 75 ? 'CRITICAL' : overallScore >= 50 ? 'HIGH' : overallScore >= 25 ? 'MEDIUM' : 'LOW';
+
+  const assessment = await RiskAssessmentModel.create({
+    workId,
+    score: overallScore,
+    level,
+    signals,
+    modelVersion: mlRes.data?.modelVersion || 'nirikshan-ml-realtime',
+    generatedAt: new Date(),
+  });
+
+  return assessment;
 }

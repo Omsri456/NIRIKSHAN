@@ -61,4 +61,13 @@ router.get(
   workController.getSimilar
 );
 
+// POST /api/works/:workId/analyze-risk — trigger explicit ML risk analysis
+router.post(
+  '/:workId/analyze-risk',
+  validate(workParamsSchema),
+  authenticate,
+  applyScopeFilter,
+  workController.analyzeRisk
+);
+
 export default router;

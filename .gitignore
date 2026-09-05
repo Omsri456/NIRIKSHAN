@@ -68,3 +68,4 @@ logs/
 # ========================
 coverage/
 .nyc_output/
+.pytest_cache/

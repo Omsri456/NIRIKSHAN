@@ -31,13 +31,17 @@ interface SimilarityRequest {
   district: string;
 }
 
-interface SimilarityMatch {
+export interface SimilarityMatch {
   workId: string;
   description: string;
   score: number;
+  state?: string;
+  district?: string;
+  sameState?: boolean;
+  sameDistrict?: boolean;
 }
 
-interface SimilarityResponse {
+export interface SimilarityResponse {
   success: boolean;
   data: {
     matches: SimilarityMatch[];
@@ -69,7 +73,33 @@ export async function getSimilarWorks(request: SimilarityRequest): Promise<Simil
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
     });
-    return (await response.json()) as SimilarityResponse;
+    const json = (await response.json()) as any;
+
+    if (!json?.success || !Array.isArray(json?.data?.matches)) {
+      return {
+        success: false,
+        data: { matches: [], modelVersion: json?.data?.modelVersion || 'unavailable' },
+      };
+    }
+
+    // Normalize matches: ML returns 'similarity', backend/public API expects 'score'
+    const matches: SimilarityMatch[] = json.data.matches.map((item: any) => ({
+      workId: String(item.workId || ''),
+      description: String(item.description || ''),
+      score: typeof item.score === 'number' ? item.score : (typeof item.similarity === 'number' ? item.similarity : 0),
+      ...(item.state ? { state: String(item.state) } : {}),
+      ...(item.district ? { district: String(item.district) } : {}),
+      ...(typeof item.sameState === 'boolean' ? { sameState: item.sameState } : {}),
+      ...(typeof item.sameDistrict === 'boolean' ? { sameDistrict: item.sameDistrict } : {}),
+    }));
+
+    return {
+      success: true,
+      data: {
+        matches,
+        modelVersion: String(json.data.modelVersion || 'similarity-v1.0'),
+      },
+    };
   } catch (error) {
     console.error('ML service similarity call failed:', error);
     return {

@@ -45,9 +45,17 @@ export const getRiskHistory = asyncHandler(async (req: Request, res: Response) =
 });
 
 /**
- * GET /api/works/:workId/similar — currently returns an empty array.
+ * GET /api/works/:workId/similar — potentially similar works via ML.
  */
 export const getSimilar = asyncHandler(async (req: Request, res: Response) => {
   const similar = await workService.getSimilarWorks(req.params.workId);
   res.json({ success: true, data: similar });
+});
+
+/**
+ * POST /api/works/:workId/analyze-risk — trigger explicit on-demand ML anomaly analysis.
+ */
+export const analyzeRisk = asyncHandler(async (req: Request, res: Response) => {
+  const assessment = await workService.analyzeWorkRisk(req.params.workId);
+  res.json({ success: true, data: assessment });
 });
