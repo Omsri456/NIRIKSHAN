@@ -1,32 +1,40 @@
 import { Request, Response } from 'express';
+import { asyncHandler, buildScopeFilter } from '../utils';
 import * as dashboardService from '../services/dashboard.service';
 
 /**
  * GET /api/dashboard/overview
- * Currently returns the existing mock dataset (real aggregations are a
- * later milestone).
+ * Real MongoDB aggregation, scoped to user's geographic access.
  */
-export const overview = (_req: Request, res: Response) => {
-  res.json({ success: true, data: dashboardService.getOverview() });
-};
+export const overview = asyncHandler(async (req: Request, res: Response) => {
+  const scopeFilter = buildScopeFilter(req.user);
+  const data = await dashboardService.getOverview(scopeFilter);
+  res.json({ success: true, data });
+});
 
 /**
  * GET /api/dashboard/trends
  */
-export const trends = (_req: Request, res: Response) => {
-  res.json({ success: true, data: dashboardService.getTrends() });
-};
+export const trends = asyncHandler(async (req: Request, res: Response) => {
+  const scopeFilter = buildScopeFilter(req.user);
+  const data = await dashboardService.getTrends(scopeFilter);
+  res.json({ success: true, data });
+});
 
 /**
  * GET /api/dashboard/risk-distribution
  */
-export const riskDistribution = (_req: Request, res: Response) => {
-  res.json({ success: true, data: dashboardService.getRiskDistribution() });
-};
+export const riskDistribution = asyncHandler(async (req: Request, res: Response) => {
+  const scopeFilter = buildScopeFilter(req.user);
+  const data = await dashboardService.getRiskDistribution(scopeFilter);
+  res.json({ success: true, data });
+});
 
 /**
  * GET /api/dashboard/states
  */
-export const states = (_req: Request, res: Response) => {
-  res.json({ success: true, data: dashboardService.getStates() });
-};
+export const states = asyncHandler(async (req: Request, res: Response) => {
+  const scopeFilter = buildScopeFilter(req.user);
+  const data = await dashboardService.getStates(scopeFilter);
+  res.json({ success: true, data });
+});

@@ -86,3 +86,21 @@ export function buildSortObject(sort?: string): Record<string, 1 | -1> {
 
   return { [dbField]: descending ? -1 : 1 };
 }
+
+/**
+ * Builds a MongoDB query filter from the user's geographic scope.
+ * MINISTRY and ADMIN get an empty filter (national access).
+ * STATE_AUTHORITY is filtered to their assigned state.
+ * DISTRICT_AUTHORITY is filtered to their assigned district.
+ * MP is filtered to their assigned constituency.
+ */
+export function buildScopeFilter(user?: { role: string; scope: { state: string | null; district: string | null; constituency: string | null } }): Record<string, unknown> {
+  if (!user) return {};
+  if (user.role === 'MINISTRY' || user.role === 'ADMIN') return {};
+  
+  const filter: Record<string, unknown> = {};
+  if (user.scope.state) filter['location.state'] = user.scope.state;
+  if (user.scope.district) filter['location.district'] = user.scope.district;
+  if (user.scope.constituency) filter['location.constituency'] = user.scope.constituency;
+  return filter;
+}

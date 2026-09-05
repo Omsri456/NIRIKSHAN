@@ -2,6 +2,7 @@ import { WorkModel } from '../models/Work';
 import { ExpenditureModel } from '../models/Expenditure';
 import { RiskAssessmentModel } from '../models/RiskAssessment';
 import { AppError, buildSortObject, escapeRegex } from '../utils';
+import { getSimilarWorks as mlGetSimilar } from './mlClient';
 
 /**
  * Query params accepted by the works list endpoint after validation.
@@ -86,11 +87,43 @@ export async function getRiskHistory(workId: string) {
 }
 
 /**
- * GET /api/works/:workId/similar — similar works.
- * Currently returns an empty array pending ML similarity integration
- * (existing API behavior is preserved).
+ * GET /api/works/:workId/similar — similar works via ML similarity service.
+ *
+ * Flow:
+ *  1. Validate workId and find the work
+ *  2. Call the internal ML similarity service via mlClient
+ *  3. Handle ML service failure gracefully (return empty array)
+ *  4. Return the list of potentially similar works
+ *
+ * Does NOT implement similarity algorithms in Node — delegates to ML service.
  */
-export async function getSimilarWorks(_workId: string) {
-  // TODO: Member 5 — Wire to ML similarity service
-  return [];
+export async function getSimilarWorks(workId: string): Promise<Array<{ workId: string; description: string; score: number }>> {
+  // 1. Find the work to extract similarity input fields
+  const work = await WorkModel.findOne({ workId }).lean();
+  if (!work) {
+    throw new AppError(404, 'WORK_NOT_FOUND', 'Work could not be found.');
+  }
+
+  try {
+    // 2. Call ML similarity service
+    const mlResponse = await mlGetSimilar({
+      workId: work.workId,
+      description: work.description,
+      category: work.category,
+      state: work.location.state,
+      district: work.location.district,
+    });
+
+    // 3. Handle ML service failure gracefully
+    if (!mlResponse.success || !mlResponse.data?.matches) {
+      // ML service unavailable or returned error — return empty
+      return [];
+    }
+
+    // 4. Return matches (potentially similar works, not "duplicates")
+    return mlResponse.data.matches;
+  } catch {
+    // ML service unreachable — graceful degradation
+    return [];
+  }
 }

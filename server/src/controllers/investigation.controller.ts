@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
-import { asyncHandler } from '../utils';
+import { asyncHandler, buildScopeFilter } from '../utils';
 import * as investigationService from '../services/investigation.service';
 
 /**
  * POST /api/investigations
  */
 export const create = asyncHandler(async (req: Request, res: Response) => {
-  const investigation = await investigationService.createInvestigation(req.body, req.user?._id);
+  const scopeFilter = buildScopeFilter(req.user as any);
+  const investigation = await investigationService.createInvestigation(req.body, req.user?._id, scopeFilter);
   res.status(201).json({ success: true, data: investigation });
 });
 
@@ -14,8 +15,10 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
  * GET /api/investigations — paginated list, optionally by status.
  */
 export const list = asyncHandler(async (req: Request, res: Response) => {
+  const scopeFilter = buildScopeFilter(req.user as any);
   const { investigations, pagination } = await investigationService.listInvestigations(
-    req.query as unknown as investigationService.InvestigationListQuery
+    req.query as unknown as investigationService.InvestigationListQuery,
+    scopeFilter
   );
   res.json({ success: true, data: investigations, pagination });
 });
@@ -24,7 +27,8 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
  * GET /api/investigations/:id
  */
 export const get = asyncHandler(async (req: Request, res: Response) => {
-  const investigation = await investigationService.getInvestigation(req.params.id);
+  const scopeFilter = buildScopeFilter(req.user as any);
+  const investigation = await investigationService.getInvestigation(req.params.id, scopeFilter);
   res.json({ success: true, data: investigation });
 });
 
@@ -32,7 +36,8 @@ export const get = asyncHandler(async (req: Request, res: Response) => {
  * PATCH /api/investigations/:id
  */
 export const update = asyncHandler(async (req: Request, res: Response) => {
-  const investigation = await investigationService.updateInvestigation(req.params.id, req.body);
+  const scopeFilter = buildScopeFilter(req.user as any);
+  const investigation = await investigationService.updateInvestigation(req.params.id, req.body, scopeFilter);
   res.json({ success: true, data: investigation });
 });
 
@@ -40,10 +45,12 @@ export const update = asyncHandler(async (req: Request, res: Response) => {
  * POST /api/investigations/:id/notes
  */
 export const addNote = asyncHandler(async (req: Request, res: Response) => {
+  const scopeFilter = buildScopeFilter(req.user as any);
   const investigation = await investigationService.addNote(
     req.params.id,
     req.body.content,
-    req.user
+    req.user,
+    scopeFilter
   );
   res.json({ success: true, data: investigation });
 });
