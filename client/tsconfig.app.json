@@ -15,6 +15,11 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@nirikshan/shared": ["../shared/types"]
+    },
 
     /* Linting */
     "noUnusedLocals": true,
