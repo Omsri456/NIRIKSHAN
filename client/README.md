@@ -1,32 +1,59 @@
-# React + TypeScript + Vite
+# NIRIKSHAN — Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + TypeScript frontend for the NIRIKSHAN MPLADS risk intelligence platform. Built with Vite, React Router, and Recharts. Data contracts are shared with the backend via the `@nirikshan/shared` workspace package (`../shared/types`).
 
-Currently, two official plugins are available:
+## Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+From the **repo root** (this is an npm workspace):
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Start the backend first (see `../server/README.md` — briefly: `npm run seed` then `npm run dev` inside `server/`, listening on port 5000), then run the client:
+
+```bash
+cd client
+npm run dev
+```
+
+The dev server runs on `http://localhost:5173` and proxies `/api/*` requests to `http://localhost:5000` (configured in `vite.config.ts`), so no CORS setup or `.env` is needed locally.
+
+## Demo accounts
+
+Seeded by `server`'s `npm run seed`, password `password123` for all:
+
+| Email | Role |
+|---|---|
+| `ministry@nirikshan.gov.in` | Ministry (national scope) |
+| `state.mh@nirikshan.gov.in` | State Authority (Maharashtra) |
+| `district.mumbai@nirikshan.gov.in` | District Authority (Mumbai) |
+| `mp@nirikshan.gov.in` | Member of Parliament |
+| `admin@nirikshan.gov.in` | Administrator |
+
+## Structure
+
+```
+src/
+  api/          Typed HTTP clients per resource (auth, dashboard, works, risk, investigations)
+  components/
+    layout/     Sidebar, Topbar, AppLayout shell, ProtectedRoute guard
+    ui/         Reusable primitives — StatCard, RiskBadge, RiskGauge, Pagination, loading/error/empty states
+    charts/     Recharts-based trend chart + hand-built risk distribution & state table
+  context/      AuthContext (session, login/logout)
+  pages/        One component per route
+  utils/        Formatting helpers (currency, date) and shared constants (role labels, risk colors)
+  App.tsx       Route definitions
+  index.css     Design tokens (colors, type, spacing)
+  App.css       Shell + component styles
+```
+
+Every API response is typed against `shared/types/`, so a backend contract change should surface as a type error here rather than a silent runtime bug.
+
+## Building
+
+```bash
+npm run build
+```
+
+Set `VITE_API_BASE_URL` (see `.env.example`) if the built app is served from a different origin than the API.
