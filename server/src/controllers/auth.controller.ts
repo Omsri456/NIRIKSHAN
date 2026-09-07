@@ -14,6 +14,14 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/auth/register
+ */
+export const register = asyncHandler(async (req: Request, res: Response) => {
+  const data = await authService.register(req.body);
+  res.status(201).json({ success: true, data });
+});
+
+/**
  * POST /api/auth/logout
  * JWT is stateless — the client discards the token.
  */

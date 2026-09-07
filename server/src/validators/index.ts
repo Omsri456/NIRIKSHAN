@@ -3,7 +3,7 @@
 // Consumed by the reusable validation middleware (middleware/validate.ts)
 // ============================================================
 
-export { loginSchema } from './auth.validator';
+export { loginSchema, registerSchema } from './auth.validator';
 export { listWorksSchema, workParamsSchema } from './work.validator';
 export { highRiskSchema } from './risk.validator';
 export {

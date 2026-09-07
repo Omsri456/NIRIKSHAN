@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { extractErrorMessage } from '@/api/client';
 
@@ -79,6 +79,12 @@ export function LoginPage() {
             <button type="submit" className="btn btn-primary btn-block" disabled={isSubmitting}>
               {isSubmitting ? 'Signing in…' : 'Sign in'}
             </button>
+            <div style={{ marginTop: '16px', textAlign: 'center', fontSize: '14px' }}>
+              <span style={{ color: 'var(--color-text-secondary, #94a3b8)' }}>Don't have an account? </span>
+              <Link to="/register" style={{ color: 'var(--color-primary, #3b82f6)', fontWeight: 600, textDecoration: 'none' }}>
+                Register
+              </Link>
+            </div>
           </form>
         </div>
       </div>

@@ -6,11 +6,28 @@ export interface LoginResponse {
   user: SafeUser;
 }
 
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+  role?: string;
+  scope?: {
+    state?: string | null;
+    district?: string | null;
+    constituency?: string | null;
+  };
+}
+
 export async function login(email: string, password: string): Promise<LoginResponse> {
   const { data } = await apiClient.post<ApiResponse<LoginResponse>>('/auth/login', {
     email,
     password,
   });
+  return data.data;
+}
+
+export async function register(payload: RegisterPayload): Promise<LoginResponse> {
+  const { data } = await apiClient.post<ApiResponse<LoginResponse>>('/auth/register', payload);
   return data.data;
 }
 
