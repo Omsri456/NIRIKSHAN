@@ -20,6 +20,8 @@ venv/
 env/
 ml/models/*.pkl
 ml/models/*.joblib
+ml/models/*.npz
+ML_data/
 
 # ========================
 # Environment / Secrets
