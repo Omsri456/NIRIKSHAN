@@ -122,23 +122,38 @@ export function RegisterPage() {
 
             <div className="field-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div className="field">
-                <label htmlFor="state">State (Optional)</label>
-                <input
+                <label htmlFor="state">State / UT (Scope)</label>
+                <select
                   id="state"
-                  type="text"
                   value={state}
                   onChange={(e) => setState(e.target.value)}
-                  placeholder="e.g. Karnataka"
-                />
+                  className="select-input"
+                >
+                  <option value="">All States (Nationwide Scope)</option>
+                  <option value="Assam">Assam</option>
+                  <option value="Bihar">Bihar</option>
+                  <option value="Gujarat">Gujarat</option>
+                  <option value="Karnataka">Karnataka</option>
+                  <option value="Kerala">Kerala</option>
+                  <option value="Madhya Pradesh">Madhya Pradesh</option>
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Punjab">Punjab</option>
+                  <option value="Rajasthan">Rajasthan</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                  <option value="Telangana">Telangana</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  <option value="West Bengal">West Bengal</option>
+                  <option value="Delhi">Delhi</option>
+                </select>
               </div>
               <div className="field">
-                <label htmlFor="district">District (Optional)</label>
+                <label htmlFor="district">District (Optional Scope)</label>
                 <input
                   id="district"
                   type="text"
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
-                  placeholder="e.g. Bengaluru Urban"
+                  placeholder="e.g. Dahod, Mumbai, Lucknow"
                 />
               </div>
             </div>

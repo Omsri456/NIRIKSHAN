@@ -8,7 +8,7 @@ import { StatusPill } from '@/components/ui/RiskBadge';
 import { Pagination } from '@/components/ui/Pagination';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
 import { WORK_STATUS_OPTIONS } from '@/utils/constants';
-import { formatCurrencyCompact, formatDate } from '@/utils/format';
+import { formatCurrencyCompact, formatDate, translateWorkDescription } from '@/utils/format';
 
 export function WorksListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -147,7 +147,7 @@ export function WorksListPage() {
                       }}
                     >
                       <td className="mono cell-secondary">{work.workId}</td>
-                      <td className="cell-primary">{work.description}</td>
+                      <td className="cell-primary">{translateWorkDescription(work.description, work.category)}</td>
                       <td>
                         {work.location.district}, {work.location.state}
                       </td>

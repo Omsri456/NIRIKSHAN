@@ -58,3 +58,40 @@ export function initials(name: string): string {
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
+
+/**
+ * Normalizes transliterated Gujarati / regional text into clear English summaries.
+ */
+export function translateWorkDescription(text: string | null | undefined, category?: string): string {
+  if (!text) return 'MPLADS Development Project';
+
+  const lower = text.toLowerCase();
+  
+  // Check if text has local Gujarati / regional transliterations
+  const isRegional = /\b(kam|kaam|faliya|faliyu|kuva|kuvo|nu|ma|shala|aanganvadi|vistar|game|sheri|pase|sudhi)\b/i.test(lower);
+  if (!isRegional) return text;
+
+  const components: string[] = [];
+
+  if (/c\.?c\.?\s*road|paver|block/i.test(lower)) {
+    components.push('Cement Concrete Road Construction');
+  } else if (/kuva|kuvo|paani|pani|water/i.test(lower)) {
+    components.push('Community Drinking Water Well Project');
+  } else if (/aanganvadi|anganwadi/i.test(lower)) {
+    components.push('Anganwadi Child Healthcare Center Project');
+  } else if (/aashram|shala|school/i.test(lower)) {
+    components.push('Ashram School Infrastructure Project');
+  } else if (/gutter|nala|drain/i.test(lower)) {
+    components.push('Drainage & Sanitation Infrastructure Work');
+  } else {
+    components.push(category || 'Community Infrastructure Work');
+  }
+
+  // Extract location/locality hints
+  const villageMatch = text.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(?:game|vistar|faliya)/i);
+  if (villageMatch && villageMatch[1]) {
+    components.push(`at ${villageMatch[1]}`);
+  }
+
+  return `${components.join(' ')} (${text})`;
+}
