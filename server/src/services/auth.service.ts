@@ -62,6 +62,16 @@ export async function login({ email, password }: LoginCredentials) {
 export async function register(payload: RegisterPayload) {
   const emailLower = payload.email.toLowerCase().trim();
 
+  // Government Security Rule: Verify official government email domain
+  const isGovDomain = /@.*(gov\.in|nic\.in|nirikshan\.gov\.in)$/i.test(emailLower);
+  if (!isGovDomain) {
+    throw new AppError(
+      400,
+      'UNAUTHORIZED_DOMAIN',
+      'Registration is restricted to verified government personnel with official .gov.in or .nic.in email addresses.'
+    );
+  }
+
   const existingUser = await UserModel.findOne({ email: emailLower });
   if (existingUser) {
     throw new AppError(400, 'USER_EXISTS', 'An account with this email already exists.');
