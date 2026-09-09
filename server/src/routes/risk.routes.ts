@@ -29,8 +29,8 @@ router.get('/early-warnings', authenticate, applyScopeFilter, riskController.ear
 // PATCH /api/risk/early-warnings/:id/acknowledge
 router.patch(
   '/early-warnings/:id/acknowledge',
-  validate({ params: z.object({ id: z.string().regex(/^[a-f0-9]{24}$/i) }) }),
   authenticate,
+  validate({ params: z.object({ id: z.string().regex(/^[a-f0-9]{24}$/i) }) }),
   riskController.acknowledgeEarlyWarning
 );
 
