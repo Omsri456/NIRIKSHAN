@@ -10,6 +10,7 @@ import { WorkDetailPage } from '@/pages/WorkDetailPage';
 import { HighRiskPage } from '@/pages/HighRiskPage';
 import { InvestigationsListPage } from '@/pages/InvestigationsListPage';
 import { InvestigationDetailPage } from '@/pages/InvestigationDetailPage';
+import { RiskHeatmapPage } from '@/pages/RiskHeatmapPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import './App.css';
 
@@ -32,9 +33,11 @@ function App() {
             <Route path="works" element={<WorksListPage />} />
             <Route path="works/:workId" element={<WorkDetailPage />} />
             <Route path="high-risk" element={<HighRiskPage />} />
+            <Route path="risk-map" element={<RiskHeatmapPage />} />
             <Route path="investigations" element={<InvestigationsListPage />} />
             <Route path="investigations/:id" element={<InvestigationDetailPage />} />
           </Route>
+
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AuthProvider>

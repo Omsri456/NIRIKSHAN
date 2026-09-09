@@ -14,7 +14,9 @@ import { StatCard } from '@/components/ui/StatCard';
 import { TrendChart } from '@/components/charts/TrendChart';
 import { RiskDistributionChart } from '@/components/charts/RiskDistributionChart';
 import { StateTable } from '@/components/charts/StateTable';
+import { GeographicRiskHeatmap } from '@/components/map/GeographicRiskHeatmap';
 import { ErrorState, LoadingState } from '@/components/ui/States';
+
 import { formatCurrencyCompact, formatNumber } from '@/utils/format';
 
 interface DashboardData {
@@ -64,10 +66,16 @@ export function DashboardPage() {
             Fund utilization, execution status and risk posture across works in your scope.
           </p>
         </div>
-        <Link to="/high-risk" className="btn btn-secondary">
-          Review high-risk works
-        </Link>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Link to="/risk-map" className="btn btn-secondary">
+            Geographic Risk Heatmap
+          </Link>
+          <Link to="/high-risk" className="btn btn-secondary">
+            Review high-risk works
+          </Link>
+        </div>
       </div>
+
 
       {isLoading && <LoadingState label="Loading dashboard…" />}
       {error && !isLoading && <ErrorState message={error} onRetry={load} />}
@@ -123,8 +131,11 @@ export function DashboardPage() {
             </div>
           </div>
 
+          <GeographicRiskHeatmap />
+
           {showStateBreakdown && (
             <div className="panel" style={{ marginTop: 24 }}>
+
               <div className="panel-header">
                 <h3>Works by state</h3>
                 <span className="muted">{data.states.length} states</span>
