@@ -1,0 +1,18 @@
+{
+  "completedAt": "2026-09-09T11:25:33.455968",
+  "totalWorks": 87287,
+  "elapsedSeconds": 1015.2,
+  "modelVersion": "nirikshan-ml-v1.0",
+  "riskDistribution": {
+    "CRITICAL": 7,
+    "HIGH": 227,
+    "MEDIUM": 31681,
+    "LOW": 55372
+  },
+  "flagCounts": {
+    "costFlags": 5633,
+    "timelineFlags": 6447,
+    "paymentFlags": 41,
+    "similarityMatches": 49331
+  }
+}

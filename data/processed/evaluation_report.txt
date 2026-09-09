@@ -1,0 +1,184 @@
+
+=================================================================
+NIRIKSHAN — ML MODEL EVALUATION REPORT
+=================================================================
+Total works scored: 87,272
+Model version: nirikshan-ml-v1.0
+
+==================================================
+1. RISK DISTRIBUTION
+==================================================
+  CRITICAL:      3 (  0.0%) 
+      HIGH:    221 (  0.3%) 
+    MEDIUM: 31,623 ( 36.2%) ██████████████████
+       LOW: 55,425 ( 63.5%) ███████████████████████████████
+
+  ⚠️  WARNING: CRITICAL rate is very low (<1%).
+     Model may be too conservative.
+
+==================================================
+2. SUB-SCORE DISTRIBUTIONS
+==================================================
+  Cost Anomaly:
+    Mean: 20.3  Median: 16.3  Max: 100.0  Flagged (>=50): 5,554
+  Timeline Delay:
+    Mean: 21.6  Median: 18.0  Max: 70.0  Flagged (>=50): 6,495
+  Payment Anomaly:
+    Mean: 0.1  Median: 0.0  Max: 100.0  Flagged (>=50): 43
+  Duplicate Similarity:
+    Mean: 52.5  Median: 86.6  Max: 100.0  Flagged (>=50): 49,337
+
+==================================================
+3. TOP-20 CRITICAL WORKS (Sanity Check)
+==================================================
+  Review these manually — do they look genuinely suspicious?
+
+   1. [ 82] 80680
+      Desc: Construction of community centers and community halls
+      Flags: COST_OVERRUN_RISK, PAYMENT_ANOMALY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as CRITICAL risk due to cost anomaly detected, unusual payment pattern detected, potent
+
+   2. [ 76] 225864
+      Desc: Lighting of public spaces
+      Flags: COST_OVERRUN_RISK, PAYMENT_ANOMALY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as CRITICAL risk due to cost exceeds peer benchmark, unusual payment pattern detected, 
+
+   3. [ 75] 80673
+      Desc: Construction of community centers and community halls
+      Flags: COST_OVERRUN_RISK, PAYMENT_ANOMALY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as CRITICAL risk due to cost exceeds peer benchmark, unusual payment pattern detected, 
+
+   4. [ 74] 225860
+      Desc: Lighting of public spaces
+      Flags: COST_OVERRUN_RISK, PAYMENT_ANOMALY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to cost exceeds peer benchmark, unusual payment pattern detected, pote
+
+   5. [ 74] 225862
+      Desc: Lighting of public spaces
+      Flags: COST_OVERRUN_RISK, PAYMENT_ANOMALY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to cost exceeds peer benchmark, unusual payment pattern detected, pote
+
+   6. [ 73] 225863
+      Desc: Lighting of public spaces
+      Flags: COST_OVERRUN_RISK, PAYMENT_ANOMALY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to cost exceeds peer benchmark, unusual payment pattern detected, pote
+
+   7. [ 73] 225865
+      Desc: Lighting of public spaces
+      Flags: COST_OVERRUN_RISK, PAYMENT_ANOMALY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to cost exceeds peer benchmark, unusual payment pattern detected, pote
+
+   8. [ 71] 188276
+      Desc: Lighting of public spaces
+      Flags: COST_OVERRUN_RISK, PAYMENT_ANOMALY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to cost exceeds peer benchmark, unusual payment pattern detected, pote
+
+   9. [ 70] 188277
+      Desc: Lighting of public spaces
+      Flags: COST_OVERRUN_RISK, PAYMENT_ANOMALY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to cost exceeds peer benchmark, unusual payment pattern detected, pote
+
+  10. [ 68] 135002
+      Desc: Construction of rooms and halls in school and colleges
+      Flags: COST_OVERRUN_RISK, TIMELINE_DELAY_RISK, PAYMENT_ANOMALY_RISK
+      Why: Work flagged as HIGH risk due to potential duplicate work detected, work stalled beyond 2 years, cos
+
+  11. [ 66] 161333
+      Desc: Construction of community centers and community halls
+      Flags: COST_OVERRUN_RISK, PAYMENT_ANOMALY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to cost exceeds peer benchmark, potential duplicate work detected, exp
+
+  12. [ 63] 1322
+      Desc: supply and installation of led semi high mast at different places in district ag
+      Flags: COST_OVERRUN_RISK, TIMELINE_DELAY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to cost exceeds peer benchmark, unusual implementation duration, poten
+
+  13. [ 63] 122722
+      Desc: Construction of Community Hall at Korutla Town of Jagtial Dist
+      Flags: COST_OVERRUN_RISK, TIMELINE_DELAY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to cost exceeds peer benchmark, work stalled beyond 2 years, severely 
+
+  14. [ 61] 141882
+      Desc: Construction of New LDR Complex Building (Maternity Complex with Roof Top Solar 
+      Flags: COST_OVERRUN_RISK, TIMELINE_DELAY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to cost exceeds peer benchmark, potential duplicate work detected, ext
+
+  15. [ 61] 141883
+      Desc: Construction of New LDR Complex Building (Maternity Complex with Roof Top Solar 
+      Flags: COST_OVERRUN_RISK, TIMELINE_DELAY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to cost exceeds peer benchmark, potential duplicate work detected, ext
+
+  16. [ 61] 80690
+      Desc: Construction of stadiums
+      Flags: PAYMENT_ANOMALY_RISK, POTENTIAL_DUPLICATE_WORK, OVERSPEND
+      Why: Work flagged as HIGH risk due to unusual payment pattern detected, potential duplicate work detected
+
+  17. [ 61] 141888
+      Desc: Construction of community centers and community halls
+      Flags: TIMELINE_DELAY_RISK, PAYMENT_ANOMALY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to potential duplicate work detected, extended implementation delay, u
+
+  18. [ 60] 147432
+      Desc: Construction of library building
+      Flags: COST_OVERRUN_RISK, TIMELINE_DELAY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to cost exceeds peer benchmark, potential duplicate work detected, ext
+
+  19. [ 60] 141881
+      Desc: Construction of New LDR Complex Building (Maternity Complex with Roof Top Solar 
+      Flags: COST_OVERRUN_RISK, TIMELINE_DELAY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to cost exceeds peer benchmark, potential duplicate work detected, ext
+
+  20. [ 60] 141884
+      Desc: Construction of New LDR Complex Building (Maternity Complex with Roof Top Solar 
+      Flags: COST_OVERRUN_RISK, TIMELINE_DELAY_RISK, POTENTIAL_DUPLICATE_WORK
+      Why: Work flagged as HIGH risk due to cost exceeds peer benchmark, potential duplicate work detected, ext
+
+==================================================
+4. FLAG FREQUENCY ANALYSIS
+==================================================
+  POTENTIAL_DUPLICATE_WORK: 49,337 (56.5%)
+  TIMELINE_DELAY_RISK: 6,452 (7.4%)
+  COST_OVERRUN_RISK: 5,545 (6.4%)
+  STALLED_WORK: 1,255 (1.4%)
+  OVERSPEND: 172 (0.2%)
+  FINANCIAL_INCONSISTENCY: 116 (0.1%)
+  EXCESSIVE_COST_ESCALATION: 63 (0.1%)
+  PAYMENT_ANOMALY_RISK: 43 (0.0%)
+
+==================================================
+5. SIMILARITY / DUPLICATE DETECTION ANALYSIS
+==================================================
+  Works with similar matches: 49,326
+  Total match pairs: 187,515
+
+  Top-5 Highest Similarity Pairs:
+    311395 ↔ 311400 (100.00%, same district)
+      Matched: Development of sports infrastructure for students in governm
+    311395 ↔ 311403 (100.00%, same district)
+      Matched: Development of sports infrastructure for students in governm
+    311395 ↔ 311399 (100.00%, same district)
+      Matched: Development of sports infrastructure for students in governm
+    311395 ↔ 311398 (100.00%, same district)
+      Matched: Development of sports infrastructure for students in governm
+    311395 ↔ 311397 (100.00%, same district)
+      Matched: Development of sports infrastructure for students in governm
+
+==================================================
+6. COMPLIANCE RULE HIT RATES
+==================================================
+  Work Stalled Beyond 2 Years: 1,255
+  Expenditure Exceeds Approved Amount: 172
+  Completed Work Has Pending Payments: 116
+  Extreme Cost Escalation: 63
+
+==================================================
+7. SCORE QUALITY CHECKS
+==================================================
+  Overall Risk Score Stats:
+    Mean: 21.1
+    Median: 21.0
+    Std Dev: 9.9
+    Min: 0, Max: 82
+    P10: 8, P90: 34
+    Unique score values: 72
+  ✅ Good score spread (72 unique values).

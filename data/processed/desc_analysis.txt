@@ -1,0 +1,125 @@
+﻿=== 50 RANDOM DESCRIPTIONS ===
+1. construction of footpath earth work at different places
+2. Vikash Khand Sujanganj Gram Kotila Chawariya Me Kotilasan Mandir Ke Pass Semi Hight Mast Light ka Karya
+3. Construction of Kurukkankunnu -Kuzhuppilli Thazham Road, Ward No. 25, Koothattukulam Municipality, Ernakulam District
+4. Establishment of an open gym near Village Jaitpur Main Road Temple in consultation with Aadesh Shakya from my MP Local Area Development Fund (9716765419)
+5. vidhansabha bithoor ke antargat gram panchayat gopalpur vikas khand bheetargaon me girendra ke darwaje se chinka ke ghar hote hue chote sonkar ke darwaje tak interlocking road ka nirman karya length 345m
+6. For purchase and installation of hospital furniture including wardrobes at Priyadarshini Maternity Home located at Old Madiwala in BTM Layout 1st Stage, Bengaluru South - 560029
+7. Drinking water tanker work at Moti Vant Gram Panchayat
+8. Sarswati Shishu Mandir Urgam chamoli me Kaksha Kaksh Nirman, Karyadayi Sanstha- Vidhyalay Prabandh Samiti
+9. Const. of PDS distribution hall with waiting shed (2 Lakh) for beneficiaries at Ward No 11
+10. CONSTRUTION OF HALL IN STADIUM,AREA IS 548.25 SQ.FT WITH ELECTRICAL INSTALLMENT AT MUNDHALKHURD,BHIWANI
+11. CONSTRUCTION OF R.C.C. ROAD FROM HOUSE OF KADIA JASVANTBHAI KANTILAL FROM HOUSE OF MADHAVLAL MASTER TO IN FRONT OF KADIA SAMAJ VADI TO SVAMINARAYAN MANDIR AND IN FRONT OF GRAM PANCHAYAT
+12. Construction of cremation final ritiual structure
+13. Installation of a high-mast light near the turn-Chowk in Maheshmarwa village, Champapur Panchayat, Gandey Block.
+14. construction of water canal moga no 49000 left, from Jugvir to jile singh 8 acar
+15. Construction of Internal CC Road at Mauje Daregaonwadi, Taluka Mudkhed, District Nanded
+16. Suction pipe motor engine canvas pipe
+17. new connection of  hari singh s/o sohan lal kajla village
+18. Construction of CC road from PWD marg to Vishram Gond house
+19. Bhuj Talukana Nana Dinara gaame Dhanivaas paase
+20. Bus stand/bus shed
+21. Development of 1 no Konwar Nabajyiti  Yubak Songha, 1 no Konwar gaon, Silakuti GP
+22. Construction Of Community Hall Near Mallikarjun Temple at Umaranni Village
+23. Installation of Semi High Mast Lights in different villages as per attached recommendation letter
+Revised Letter Attached
+24. Development of Kaharapokhari Kranti Maidan at Kaharapokhari, Dakhinbad GP.
+25. Yatri Pratikshalay Nirman
+26. MS Pole with LED semi High Mast Light
+27. Construction of Sewerage line From house of Jasmail Singh to house of Gurpreet Singh, Vill. Kothe Baggu, Block Jargon, Distt. Ludhiana
+28. Janpad Mau vikaskhand ghosi gram sabha Bela Sultanpur me link pitch road se Kali Mata ke sthan Tak interlocking (233 meter)
+29. Drilling Borewells with pumpset at Old employement office
+30. Construction of Building for Erupathekkar Anganvady Building No. 75
+31. Mini Mast Light at Kakadikkal Parakkal
+32. The purchase of a hearing aid to Shri Ramanna K Y bin Yallappa Devi Krupa, Kadadakatte, Kavalagundi Post Bhadravati-Taluk, Shivamogga district.
+33. CC road work
+34. Construction of 300 feet PCC road from Devi Dham to Neem tree on the main road in village Arar
+35. navchetan highschool ma panini parab nu kam
+36. Erection of High Mast with LED Flood Lights near Ramalingeshwara Swamy Temple
+37. Construction of paver blocks from the main road to Bharat Mahato house in Mahalonia Tola of Jharpo Panchayat under Tatijharia block.
+38. Construction of Ponnamvarikkayil- Uppamthadam Road
+39. At Bharati Milan Sangha Maidan, JL No.10, CS Dag No. 1781,Mouza Sultanpur under Uttar Dumdum Municipality, North 24 Pgs district.
+40. Street lights
+41. Gram Hirankhedi me shamshan ghat ke ground me CC road nirman
+42. 34-Installation of a solar street light near Durga Temple in Baidaura
+43. Installation of Solar High Mast Light at Dighitola Chowrasta
+44. Construction Of Rungmanch At Narsala
+45. govt degree collage badgaon
+46. Drawing Street main line at Pattikkad West, Ward No.14, Keezhattoor Panchayat
+47. LALCHAND BANWASI KE GHAR KE PASS 01 NAG SOLAR STREET LIGHT
+48. Janpad Nainital ke antargat devbhoomi Jan Seva Sanstha gram Gangapur Golapar mai awses Jal Milan Kendra ka Nirman Karya Hetu
+49. UCHH PRATHMIK VIDHYALAY RAKSOLI EAST PART
+50. Construction Of Rungmanch At Near Barah Jyotirling Temple Gram Saliwada Gp Mothar
+
+=== TOP 30 FIRST WORDS ===
+  construction: 27282
+  installation: 7600
+  providing: 3042
+  gram: 2827
+  purchase: 1993
+  for: 1369
+  development: 1021
+  block: 943
+  supply: 939
+  vikas: 791
+  laying: 717
+  to: 714
+  const.: 707
+  drilling: 703
+  cc: 610
+  work: 542
+  high: 512
+  janpad: 464
+  renovation: 413
+  solar: 402
+  paver: 397
+  procurement: 361
+  prathmik: 355
+  repair: 342
+  installing: 337
+  setting: 319
+  ms: 279
+  c/o: 276
+  vikash: 274
+  village: 268
+
+=== KEYWORD FREQUENCY ===
+  road: 16117 (18.5%)
+  school: 7604 (8.7%)
+  hospital: 463 (0.5%)
+  water: 3948 (4.5%)
+  toilet: 818 (0.9%)
+  drain: 1957 (2.2%)
+  bridge: 430 (0.5%)
+  community: 7326 (8.4%)
+  hall: 7035 (8.1%)
+  temple: 3569 (4.1%)
+  church: 180 (0.2%)
+  mosque: 203 (0.2%)
+  solar: 5638 (6.5%)
+  park: 1303 (1.5%)
+  library: 951 (1.1%)
+  playground: 240 (0.3%)
+  cremation: 699 (0.8%)
+  sanitation: 29 (0.0%)
+  ambulance: 390 (0.4%)
+  computer: 434 (0.5%)
+  drinking: 845 (1.0%)
+  borewell: 1060 (1.2%)
+  handpump: 407 (0.5%)
+  cc road: 5829 (6.7%)
+  pathway: 287 (0.3%)
+  street: 4660 (5.3%)
+  light: 14161 (16.2%)
+  sewage: 23 (0.0%)
+  anganwadi: 492 (0.6%)
+  panchayat: 12267 (14.1%)
+  bus: 1819 (2.1%)
+  electric: 1058 (1.2%)
+  boundary: 1223 (1.4%)
+  wall: 3014 (3.5%)
+  building: 2217 (2.5%)
+  stadium: 242 (0.3%)
+  sports: 401 (0.5%)
+  gym: 1401 (1.6%)
+  multipurpose: 126 (0.1%)

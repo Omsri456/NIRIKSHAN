@@ -1,0 +1,32 @@
+﻿=== WORK STATUS ===
+  IN_PROGRESS: 83,335 (95.5%)
+  COMPLETED: 3,937 (4.5%)
+
+=== MODEL 1: COST ANOMALY ===
+  recommendedAmount : 87,272  min=1  max=99,965,000  median=400,000
+  finalAmount       : 3,937  min=12,562  max=15,060,806  median=299,155
+  fin/rec ratio     : 3,937  min=0.015  max=24.756  median=1.000
+  categories: {'Normal/Others': 85008, 'Trust and Society': 899, 'Repair and Renovation': 1342, 'Bar and Associations': 18, 'N/A': 5}
+  states: 36  districts: 756
+  Works with final/rec > 1.5x (cost overrun signal): 301 (7.6%)
+
+=== MODEL 2: TIMELINE / DELAY ===
+  implementationDays (completed):   2,830  min=2  max=918  median=236d
+  daysSinceRecommendation (active): 83,335  min=2  max=1178  median=244d
+  sanctionLagDays (synthetic):      87,272  min=15  max=90  mean=26.1d
+  Active works older than 1 year:  28,692 (34.4%)
+  Active works older than 2 years: 1,255 (1.5%) -- strong delay signal
+
+=== MODEL 3: PAYMENT ANOMALY ===
+  Works WITH payments : 327 (0.4%)
+  Works WITHOUT       : 86,945 (99.6%)
+  totalExpenditure: min=77,726  max=77,584,071  median=12,142,254
+  uniqueVendorCount: min=1  max=44  mean=5.8
+  Works with >3 vendors: 174
+  Works with pending payments: 172 (52.6%)
+
+=== MODEL 4: NLP SIMILARITY ===
+  Descriptions: 87,272 (100.0%)
+  Word count: min=1  max=101  mean=13.8
+  Unique descriptions: 80,463
+  Exact-duplicate descriptions: 8,219 rows  (1,410 phrases repeated)

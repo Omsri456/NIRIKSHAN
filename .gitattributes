@@ -1,0 +1,4 @@
+*.npz filter=lfs diff=lfs merge=lfs -text
+*.joblib filter=lfs diff=lfs merge=lfs -text
+data/processed/risk_scores.json filter=lfs diff=lfs merge=lfs -text
+data/processed/similarity_matches.json filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-09-04T17:29:40.295281",
+  "unified_works_count": 87272,
+  "completed_works": 3937,
+  "in_progress_works": 83335,
+  "synthetic_sanction_dates": 87272,
+  "synthetic_start_dates": 87272,
+  "expenditure_groups_joined": 7258,
+  "rs_mp_districts_mapped": 237,
+  "output_files": {
+    "unified_works": "data/processed/unified_works.csv",
+    "mp_enriched": "data/processed/mp_enriched.csv"
+  },
+  "synthetic_field_notes": {
+    "sanctionDate": "Gamma(k=2, theta=12) + 15 days floor, capped at 90 days. Based on MPLADS 30-60 day guideline.",
+    "startDate": "Gamma(k=2, theta=8) + 7 days floor, capped at 60 days after sanction."
+  }
+}
