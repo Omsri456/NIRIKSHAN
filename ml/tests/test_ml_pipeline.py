@@ -441,3 +441,50 @@ class TestFastAPIEndpoints:
         body = res.json()
         assert body["success"] is True
         assert "matches" in body["data"]
+
+    def test_ingest_endpoint_rejects_empty_csv(self, client):
+        res = client.post("/internal/ml/ingest", content="")
+        assert res.status_code == 400
+        assert "detail" in res.json()
+
+    def test_ingest_endpoint_rejects_invalid_csv(self, client):
+        res = client.post("/internal/ml/ingest", content="just,some,random,columns\n1,2,3,4\n")
+        assert res.status_code == 400
+        assert "workId" in res.json().get("detail", "")
+
+
+# =====================================================================
+# 9. CSV Merge & Batch Score Callability Tests
+# =====================================================================
+
+class TestCsvMergeAndBatchScore:
+
+    def test_csv_merge_upsert(self, tmp_path):
+        from ml.app.csv_merge import merge_unified_works_csv
+
+        existing_file = tmp_path / "existing.csv"
+        initial_df = pd.DataFrame([
+            {"workId": "101", "workDescription": "Old Road", "category": "Roads"},
+            {"workId": "102", "workDescription": "Old Bridge", "category": "Bridge"},
+        ])
+        initial_df.to_csv(existing_file, index=False)
+
+        new_csv = "workId,workDescription,category\n102,Renovated Bridge,Bridge\n103,New School,Education\n"
+        result = merge_unified_works_csv(new_csv, existing_path=str(existing_file))
+
+        assert result["updated"] == 1
+        assert result["inserted"] == 1
+        assert result["updatedWorkIds"] == ["102"]
+        assert result["insertedWorkIds"] == ["103"]
+        assert result["total"] == 3
+
+        merged_df = pd.read_csv(existing_file)
+        assert len(merged_df) == 3
+        row_102 = merged_df[merged_df["workId"] == 102].iloc[0]
+        assert row_102["workDescription"] == "Renovated Bridge"
+        assert 103 in merged_df["workId"].values
+
+    def test_batch_scoring_callable(self):
+        from ml.app.batch_score import run_batch_scoring
+        assert callable(run_batch_scoring)
+

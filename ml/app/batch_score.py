@@ -26,11 +26,6 @@ import io
 import json
 import time
 
-# Ensure UTF-8 output on Windows consoles
-if sys.platform == 'win32':
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
-
 # Ensure the project root is on the path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(0, project_root)
@@ -47,7 +42,7 @@ from ml.app.services.compliance import ComplianceEngine
 from ml.app.services.risk_engine import RiskEngine
 
 
-def main():
+def run_batch_scoring(input_path=None, output_path=None, model_dir=None):
     start_time = time.time()
 
     print("=" * 65)
@@ -57,13 +52,18 @@ def main():
 
     # ── Paths ──────────────────────────────────────────────────────────
     data_dir = os.path.join(project_root, 'data', 'processed')
-    model_dir = os.path.join(project_root, 'ml', 'models')
+    if model_dir is None:
+        model_dir = os.path.join(project_root, 'ml', 'models')
     os.makedirs(model_dir, exist_ok=True)
 
-    input_path = os.path.join(data_dir, 'unified_works.csv')
-    output_path = os.path.join(data_dir, 'risk_scores.json')
-    features_path = os.path.join(data_dir, 'ml_features.csv')
-    similarity_path = os.path.join(data_dir, 'similarity_matches.json')
+    if input_path is None:
+        input_path = os.path.join(data_dir, 'unified_works.csv')
+    if output_path is None:
+        output_path = os.path.join(data_dir, 'risk_scores.json')
+
+    output_dir = os.path.dirname(output_path) or data_dir
+    features_path = os.path.join(output_dir, 'ml_features.csv')
+    similarity_path = os.path.join(output_dir, 'similarity_matches.json')
     embeddings_path = os.path.join(model_dir, 'embeddings.npz')
 
     # ── Step 1: Load data ──────────────────────────────────────────────
@@ -208,12 +208,23 @@ def main():
             "similarityMatches": len(similarity_results),
         },
     }
-    summary_path = os.path.join(data_dir, 'scoring_summary.json')
+    summary_path = os.path.join(output_dir, 'scoring_summary.json')
     with open(summary_path, 'w') as f:
         json.dump(summary, f, indent=2)
     print(f"    Summary:        {summary_path}")
     print()
 
+    return summary
+
+
+def main():
+    return run_batch_scoring()
+
 
 if __name__ == "__main__":
+    if sys.platform == 'win32':
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
     main()
+
+

@@ -58,6 +58,33 @@ function mapCategoryToSignalType(category: string): string {
   }
 }
 
+export interface ImportMlOptions {
+  targetWorkIds?: Set<string> | string[];
+}
+
+/**
+ * Hook to evaluate early warning alerts and risk escalations for genuine work updates.
+ * If alertEngine or an escalation service is loaded, calls its evaluator.
+ */
+export async function evaluateAndRecordEscalation(
+  workId: string,
+  newAssessment: any,
+  previousAssessment?: any
+): Promise<void> {
+  try {
+    const alertServicePath = path.resolve(__dirname, './alertEngine.service');
+    if (fs.existsSync(`${alertServicePath}.ts`) || fs.existsSync(`${alertServicePath}.js`)) {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const alertEngine = require('./alertEngine.service');
+      if (typeof alertEngine.evaluateAndRecordEscalation === 'function') {
+        await alertEngine.evaluateAndRecordEscalation(workId, newAssessment, previousAssessment);
+      }
+    }
+  } catch (err) {
+    console.warn(`[EscalationCheck] Failed to evaluate escalation for ${workId}:`, err);
+  }
+}
+
 /**
  * Import ML risk scores from JSON file into MongoDB RiskAssessment collection.
  *
@@ -65,9 +92,13 @@ function mapCategoryToSignalType(category: string): string {
  *  - Validates work existence (or checks workIds)
  *  - Supports safe re-running (upserts based on workId + modelVersion)
  *  - Maps ML evidence to RiskAssessment signals schema
+ *  - Evaluates escalation checks strictly for targetWorkIds (if specified) to prevent false alerts
  *  - Provides detailed import statistics
  */
-export async function importMlRiskScores(jsonFilePath?: string): Promise<ImportStats> {
+export async function importMlRiskScores(
+  jsonFilePath?: string,
+  options?: ImportMlOptions
+): Promise<ImportStats> {
   const filePath = jsonFilePath || path.resolve(__dirname, '../../../data/processed/risk_scores.json');
 
   const stats: ImportStats = {
@@ -97,6 +128,10 @@ export async function importMlRiskScores(jsonFilePath?: string): Promise<ImportS
   // Pre-fetch existing valid workIds from MongoDB to validate works
   const existingWorks = await WorkModel.find({}, { workId: 1 }).lean();
   const validWorkIdSet = new Set(existingWorks.map((w) => w.workId));
+
+  const targetIdSet = options?.targetWorkIds
+    ? (options.targetWorkIds instanceof Set ? options.targetWorkIds : new Set(options.targetWorkIds))
+    : null;
 
   for (const report of reports) {
     stats.processed++;
@@ -165,12 +200,20 @@ export async function importMlRiskScores(jsonFilePath?: string): Promise<ImportS
     try {
       // Upsert to prevent duplicates: match on workId + modelVersion
       const existing = await RiskAssessmentModel.findOne({ workId, modelVersion });
+      let savedAssessment = docData;
       if (existing) {
         await RiskAssessmentModel.updateOne({ _id: existing._id }, { $set: docData });
         stats.updated++;
       } else {
-        await RiskAssessmentModel.create(docData);
+        const created = await RiskAssessmentModel.create(docData);
         stats.inserted++;
+        savedAssessment = created.toObject();
+      }
+
+      // Only run escalation check if workId is part of this specific batch
+      const shouldEvaluateEscalation = targetIdSet === null || targetIdSet.has(workId);
+      if (shouldEvaluateEscalation) {
+        await evaluateAndRecordEscalation(workId, savedAssessment, existing);
       }
     } catch (err: any) {
       stats.failed++;
@@ -180,3 +223,6 @@ export async function importMlRiskScores(jsonFilePath?: string): Promise<ImportS
 
   return stats;
 }
+
+export { upsertWorksFromCsv, upsertWorksFromRecords, WorkImportStats } from './workImport.service';
+

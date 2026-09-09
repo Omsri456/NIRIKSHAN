@@ -10,6 +10,7 @@ import { WorkDetailPage } from '@/pages/WorkDetailPage';
 import { HighRiskPage } from '@/pages/HighRiskPage';
 import { InvestigationsListPage } from '@/pages/InvestigationsListPage';
 import { InvestigationDetailPage } from '@/pages/InvestigationDetailPage';
+import { AdminDataImportPage } from '@/pages/AdminDataImportPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import './App.css';
 
@@ -34,6 +35,7 @@ function App() {
             <Route path="high-risk" element={<HighRiskPage />} />
             <Route path="investigations" element={<InvestigationsListPage />} />
             <Route path="investigations/:id" element={<InvestigationDetailPage />} />
+            <Route path="admin/data-imports" element={<AdminDataImportPage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

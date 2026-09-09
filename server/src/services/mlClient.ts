@@ -108,3 +108,45 @@ export async function getSimilarWorks(request: SimilarityRequest): Promise<Simil
     };
   }
 }
+
+export interface BatchIngestResponse {
+  success: boolean;
+  data?: {
+    updated: number;
+    inserted: number;
+    updatedWorkIds?: string[];
+    insertedWorkIds?: string[];
+    totalWorksScored: number;
+    riskDistribution: Record<string, number>;
+    elapsedSeconds: number;
+  };
+  error?: string;
+}
+
+export async function triggerBatchIngest(csvContent: string): Promise<BatchIngestResponse> {
+  try {
+    const response = await fetch(`${env.ML_SERVICE_URL}/internal/ml/ingest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      body: csvContent,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return {
+        success: false,
+        error: `ML service returned ${response.status}: ${errorText}`,
+      };
+    }
+
+    const json = (await response.json()) as any;
+    return json as BatchIngestResponse;
+  } catch (error: any) {
+    console.error('ML service batch ingest call failed:', error);
+    return {
+      success: false,
+      error: error.message || 'ML service connection failed',
+    };
+  }
+}
+

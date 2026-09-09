@@ -13,7 +13,7 @@ These endpoints are INTERNAL and should not be publicly exposed.
 
 import os
 import json
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 try:
@@ -297,3 +297,52 @@ async def risk_distribution():
             "modelVersion": "nirikshan-ml-v1.0",
         }
     }
+
+
+@app.post("/internal/ml/ingest")
+async def ingest_csv(request: Request):
+    """
+    Accept raw CSV content, merge into unified_works.csv,
+    and trigger full batch scoring pipeline.
+    """
+    body_bytes = await request.body()
+    csv_text = body_bytes.decode('utf-8', errors='replace')
+    if not csv_text.strip():
+        raise HTTPException(status_code=400, detail="Empty CSV content provided.")
+
+    try:
+        from ml.app.csv_merge import merge_unified_works_csv
+        from ml.app.batch_score import run_batch_scoring
+    except ModuleNotFoundError:
+        from app.csv_merge import merge_unified_works_csv
+        from app.batch_score import run_batch_scoring
+
+    try:
+        # Step 2: Merge into data/processed/unified_works.csv
+        merge_result = merge_unified_works_csv(csv_text)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to parse and merge CSV: {str(e)}")
+
+    try:
+        # Step 1: Run batch scoring on full dataset
+        scoring_summary = run_batch_scoring()
+
+        # Invalidate in-memory cache of risk scores
+        global _risk_scores_cache
+        _risk_scores_cache = None
+
+        return {
+            "success": True,
+            "data": {
+                "updated": merge_result.get("updated", 0),
+                "inserted": merge_result.get("inserted", 0),
+                "updatedWorkIds": merge_result.get("updatedWorkIds", []),
+                "insertedWorkIds": merge_result.get("insertedWorkIds", []),
+                "totalWorksScored": scoring_summary.get("totalWorks", 0),
+                "riskDistribution": scoring_summary.get("riskDistribution", {}),
+                "elapsedSeconds": scoring_summary.get("elapsedSeconds", 0),
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Batch scoring failed: {str(e)}")
+
