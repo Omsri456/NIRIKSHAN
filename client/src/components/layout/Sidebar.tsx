@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: DashboardIcon, end: true },
   { to: '/works', label: 'Works', icon: WorksIcon, end: false },
   { to: '/high-risk', label: 'High Risk', icon: RiskIcon, end: false },
+  { to: '/early-warnings', label: 'Early Warnings', icon: BellIcon, end: false },
   { to: '/investigations', label: 'Investigations', icon: InvestigationIcon, end: false },
 ];
 
@@ -79,6 +80,25 @@ function RiskIcon({ className }: { className?: string }) {
       />
       <path d="M10 8v3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
       <circle cx="10" cy="13.6" r="0.9" fill="currentColor" />
+    </svg>
+  );
+}
+
+function BellIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none">
+      <path
+        d="M10 2.5a4 4 0 0 0-4 4v3.5L4.5 12h11L14 10V6.5a4 4 0 0 0-4-4Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 15a2 2 0 0 0 4 0"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

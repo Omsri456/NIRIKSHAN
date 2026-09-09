@@ -8,6 +8,7 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { WorksListPage } from '@/pages/WorksListPage';
 import { WorkDetailPage } from '@/pages/WorkDetailPage';
 import { HighRiskPage } from '@/pages/HighRiskPage';
+import { EarlyWarningsPage } from '@/pages/EarlyWarningsPage';
 import { InvestigationsListPage } from '@/pages/InvestigationsListPage';
 import { InvestigationDetailPage } from '@/pages/InvestigationDetailPage';
 import { AdminDataImportPage } from '@/pages/AdminDataImportPage';
@@ -33,6 +34,7 @@ function App() {
             <Route path="works" element={<WorksListPage />} />
             <Route path="works/:workId" element={<WorkDetailPage />} />
             <Route path="high-risk" element={<HighRiskPage />} />
+            <Route path="early-warnings" element={<EarlyWarningsPage />} />
             <Route path="investigations" element={<InvestigationsListPage />} />
             <Route path="investigations/:id" element={<InvestigationDetailPage />} />
             <Route path="admin/data-imports" element={<AdminDataImportPage />} />
@@ -43,5 +45,6 @@ function App() {
     </BrowserRouter>
   );
 }
+
 
 export default App;

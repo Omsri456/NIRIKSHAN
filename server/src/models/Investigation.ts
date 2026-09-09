@@ -12,6 +12,14 @@ export interface IInvestigation extends Document {
     createdAt: Date;
   }>;
   finding: 'NO_ISSUE' | 'MINOR_IRREGULARITY' | 'MAJOR_IRREGULARITY' | 'REFERRED_FOR_ACTION' | null;
+  history: Array<{
+    field: string;
+    oldValue: any;
+    newValue: any;
+    changedBy: mongoose.Types.ObjectId | null;
+    changedByName: string;
+    changedAt: Date;
+  }>;
 }
 
 const InvestigationSchema = new Schema<IInvestigation>(
@@ -42,9 +50,20 @@ const InvestigationSchema = new Schema<IInvestigation>(
       enum: ['NO_ISSUE', 'MINOR_IRREGULARITY', 'MAJOR_IRREGULARITY', 'REFERRED_FOR_ACTION', null],
       default: null,
     },
+    history: [
+      {
+        field: { type: String, required: true },
+        oldValue: { type: Schema.Types.Mixed, default: null },
+        newValue: { type: Schema.Types.Mixed, default: null },
+        changedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+        changedByName: { type: String, required: true },
+        changedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );
+
 
 export const InvestigationModel = mongoose.model<IInvestigation>(
   'Investigation',

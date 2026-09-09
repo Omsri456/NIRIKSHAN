@@ -108,3 +108,10 @@ export async function register(payload: RegisterPayload) {
     },
   };
 }
+
+/**
+ * GET list of assignable users for investigation assignment.
+ */
+export async function listUsers() {
+  return UserModel.find({ isActive: true }, '_id name email role scope').lean();
+}

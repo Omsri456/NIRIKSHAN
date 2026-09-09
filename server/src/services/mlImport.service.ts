@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { WorkModel } from '../models/Work';
 import { RiskAssessmentModel } from '../models/RiskAssessment';
+import { evaluateAndRecordEscalation } from './alertEngine.service';
+
 
 export interface ImportStats {
   processed: number;
@@ -60,29 +62,6 @@ function mapCategoryToSignalType(category: string): string {
 
 export interface ImportMlOptions {
   targetWorkIds?: Set<string> | string[];
-}
-
-/**
- * Hook to evaluate early warning alerts and risk escalations for genuine work updates.
- * If alertEngine or an escalation service is loaded, calls its evaluator.
- */
-export async function evaluateAndRecordEscalation(
-  workId: string,
-  newAssessment: any,
-  previousAssessment?: any
-): Promise<void> {
-  try {
-    const alertServicePath = path.resolve(__dirname, './alertEngine.service');
-    if (fs.existsSync(`${alertServicePath}.ts`) || fs.existsSync(`${alertServicePath}.js`)) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const alertEngine = require('./alertEngine.service');
-      if (typeof alertEngine.evaluateAndRecordEscalation === 'function') {
-        await alertEngine.evaluateAndRecordEscalation(workId, newAssessment, previousAssessment);
-      }
-    }
-  } catch (err) {
-    console.warn(`[EscalationCheck] Failed to evaluate escalation for ${workId}:`, err);
-  }
 }
 
 /**
@@ -198,22 +177,24 @@ export async function importMlRiskScores(
     };
 
     try {
+      const shouldEvaluateEscalation = targetIdSet === null || targetIdSet.has(workId);
       // Upsert to prevent duplicates: match on workId + modelVersion
       const existing = await RiskAssessmentModel.findOne({ workId, modelVersion });
-      let savedAssessment = docData;
       if (existing) {
+        if (shouldEvaluateEscalation) {
+          await evaluateAndRecordEscalation(existing, docData);
+        }
         await RiskAssessmentModel.updateOne({ _id: existing._id }, { $set: docData });
         stats.updated++;
       } else {
-        const created = await RiskAssessmentModel.create(docData);
+        if (shouldEvaluateEscalation) {
+          const previous = await RiskAssessmentModel.findOne({ workId }).sort({ generatedAt: -1 });
+          if (previous) {
+            await evaluateAndRecordEscalation(previous, docData);
+          }
+        }
+        await RiskAssessmentModel.create(docData);
         stats.inserted++;
-        savedAssessment = created.toObject();
-      }
-
-      // Only run escalation check if workId is part of this specific batch
-      const shouldEvaluateEscalation = targetIdSet === null || targetIdSet.has(workId);
-      if (shouldEvaluateEscalation) {
-        await evaluateAndRecordEscalation(workId, savedAssessment, existing);
       }
     } catch (err: any) {
       stats.failed++;

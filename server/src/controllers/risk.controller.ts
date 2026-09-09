@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { asyncHandler, buildScopeFilter } from '../utils';
 import * as riskService from '../services/risk.service';
+import * as alertEngineService from '../services/alertEngine.service';
 
 /**
  * GET /api/risk/high-risk — latest HIGH/CRITICAL assessments, paginated.
@@ -32,3 +33,23 @@ export const signals = asyncHandler(async (req: Request, res: Response) => {
   const data = await riskService.getSignals(scopeFilter);
   res.json({ success: true, data });
 });
+
+/**
+ * GET /api/risk/early-warnings — early warning alerts paginated and geographically scoped.
+ */
+export const earlyWarnings = asyncHandler(async (req: Request, res: Response) => {
+  const scopeFilter = buildScopeFilter(req.user);
+  const { data, pagination } = await alertEngineService.getEarlyWarnings(
+    req.query as unknown as alertEngineService.EarlyWarningsQuery,
+    scopeFilter
+  );
+  res.json({ success: true, data, pagination });
+});
+
+/**
+ * PATCH /api/risk/early-warnings/:id/acknowledge — acknowledge early warning alert.
+ */
+export const acknowledgeEarlyWarning = asyncHandler(async (req: Request, res: Response) => {
+  const data = await alertEngineService.acknowledgeEarlyWarning(req.params.id);
+  res.json({ success: true, data });
+});
