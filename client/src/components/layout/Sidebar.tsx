@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: DashboardIcon, end: true },
@@ -8,6 +9,14 @@ const NAV_ITEMS = [
 ];
 
 export function Sidebar() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+
+  const navItems = [
+    ...NAV_ITEMS,
+    ...(isAdmin ? [{ to: '/admin/data-imports', label: 'Data Import', icon: DataImportIcon, end: false }] : []),
+  ];
+
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -15,7 +24,7 @@ export function Sidebar() {
         <div className="sidebar-brand-sub">MPLADS Risk Intelligence</div>
       </div>
       <nav className="sidebar-nav" aria-label="Primary navigation">
-        {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
+        {navItems.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}
@@ -82,3 +91,25 @@ function InvestigationIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+function DataImportIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none">
+      <path
+        d="M10 3v8m0 0 3-3m-3 3-3-3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M3.5 13.5v2a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+

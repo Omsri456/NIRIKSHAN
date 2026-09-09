@@ -180,3 +180,5 @@ export async function importMlRiskScores(jsonFilePath?: string): Promise<ImportS
 
   return stats;
 }
+
+export { upsertWorksFromCsv, upsertWorksFromRecords, WorkImportStats } from './workImport.service';
