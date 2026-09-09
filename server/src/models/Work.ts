@@ -47,7 +47,7 @@ const WorkSchema = new Schema<IWork>(
     category: { type: String, required: true, index: true },
     mp: {
       name: { type: String, required: true },
-      house: { type: String, enum: ['Lok Sabha', 'Rajya Sabha'], required: true },
+      house: { type: String, required: true, default: 'Lok Sabha' },
     },
     location: {
       state: { type: String, required: true, index: true },
@@ -60,15 +60,14 @@ const WorkSchema = new Schema<IWork>(
     },
     recommendation: {
       date: { type: Date, default: null },
-      amount: { type: Number, required: true },
+      amount: { type: Number, required: true, default: 0 },
     },
     execution: {
       startDate: { type: Date, default: null },
       completionDate: { type: Date, default: null },
       status: {
         type: String,
-        enum: ['RECOMMENDED', 'SANCTIONED', 'IN_PROGRESS', 'COMPLETED', 'DROPPED'],
-        default: 'RECOMMENDED',
+        default: 'IN_PROGRESS',
         index: true,
       },
     },
