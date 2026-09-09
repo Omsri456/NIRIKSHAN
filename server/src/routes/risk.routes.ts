@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import { authenticate } from '../middleware/auth';
 import { applyScopeFilter } from '../middleware/scopeFilter';
 import { validate } from '../middleware/validate';
@@ -26,7 +27,12 @@ router.get('/signals', authenticate, applyScopeFilter, riskController.signals);
 router.get('/early-warnings', authenticate, applyScopeFilter, riskController.earlyWarnings);
 
 // PATCH /api/risk/early-warnings/:id/acknowledge
-router.patch('/early-warnings/:id/acknowledge', authenticate, riskController.acknowledgeEarlyWarning);
+router.patch(
+  '/early-warnings/:id/acknowledge',
+  validate({ params: z.object({ id: z.string().regex(/^[a-f0-9]{24}$/i) }) }),
+  authenticate,
+  riskController.acknowledgeEarlyWarning
+);
 
 export default router;
 

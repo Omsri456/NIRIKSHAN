@@ -24,6 +24,15 @@ export async function createInvestigation(body: { workId: string; priority?: str
     }
   }
 
+  // Prevent duplicate open investigations for the same work
+  const existing = await InvestigationModel.findOne({
+    workId: body.workId,
+    status: { $in: ['OPEN', 'UNDER_REVIEW'] },
+  });
+  if (existing) {
+    throw new AppError(409, 'INVESTIGATION_EXISTS', 'An active investigation already exists for this work.');
+  }
+
   return InvestigationModel.create({
     workId: body.workId,
     priority: body.priority || 'MEDIUM',

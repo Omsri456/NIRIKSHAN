@@ -71,7 +71,7 @@ export const updateInvestigationSchema = {
     status: z.enum(INVESTIGATION_STATUSES).optional(),
     priority: z.enum(INVESTIGATION_PRIORITIES).optional(),
     finding: z.union([z.enum(INVESTIGATION_FINDINGS), z.null()]).optional(),
-    assignedTo: z.string().regex(MONGO_ID_REGEX).optional(),
+    assignedTo: z.union([z.string().regex(MONGO_ID_REGEX), z.null()]).optional(),
   }),
 };
 
