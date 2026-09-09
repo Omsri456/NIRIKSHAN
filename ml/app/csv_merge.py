@@ -55,7 +55,7 @@ def merge_unified_works_csv(
         raise ValueError("Unsupported type for new_csv_source")
 
     if new_df.empty:
-        return {"updated": 0, "inserted": 0, "total": 0}
+        return {"updated": 0, "inserted": 0, "updatedWorkIds": [], "insertedWorkIds": [], "total": 0}
 
     # Normalize column names (strip BOM and whitespace)
     new_df.columns = [str(c).replace('\ufeff', '').strip() for c in new_df.columns]
@@ -114,6 +114,8 @@ def merge_unified_works_csv(
     return {
         "updated": updated_count,
         "inserted": inserted_count,
+        "updatedWorkIds": sorted(list(overlapping_ids)),
+        "insertedWorkIds": sorted(list(new_distinct_ids)),
         "total": len(merged_df),
     }
 

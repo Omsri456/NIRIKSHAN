@@ -114,6 +114,8 @@ export interface BatchIngestResponse {
   data?: {
     updated: number;
     inserted: number;
+    updatedWorkIds?: string[];
+    insertedWorkIds?: string[];
     totalWorksScored: number;
     riskDistribution: Record<string, number>;
     elapsedSeconds: number;

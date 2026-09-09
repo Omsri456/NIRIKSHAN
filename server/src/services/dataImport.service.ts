@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { DataImportModel, IDataImport } from '../models/DataImport';
 import { triggerBatchIngest } from './mlClient';
-import { upsertWorksFromCsv } from './workImport.service';
+import { upsertWorksFromCsv, parseCsv } from './workImport.service';
 import { importMlRiskScores } from './mlImport.service';
 import { AppError } from '../utils';
 
@@ -58,8 +58,24 @@ export async function processDataImport(params: ProcessImportParams): Promise<ID
     // 3. Upsert works into MongoDB Work collection
     const workStats = await upsertWorksFromCsv(csvContent, dataset);
 
+    // Thread the batch workIds (updated + inserted) into the ML score import
+    // so escalation/alert checks ONLY evaluate works present in this upload,
+    // skipping statistical noise / false alerts across the remaining ~87k works.
+    const batchWorkIds = new Set<string>([
+      ...(mlResponse.data.updatedWorkIds || []),
+      ...(mlResponse.data.insertedWorkIds || []),
+    ]);
+
+    if (batchWorkIds.size === 0) {
+      const records = parseCsv(csvContent);
+      records.forEach((r) => {
+        const id = (r.workId || '').trim();
+        if (id) batchWorkIds.add(id);
+      });
+    }
+
     // 4. Import newly generated risk scores from risk_scores.json into RiskAssessment collection
-    const scoreStats = await importMlRiskScores();
+    const scoreStats = await importMlRiskScores(undefined, { targetWorkIds: batchWorkIds });
 
     // 5. Mark COMPLETED
     importRecord.status = 'COMPLETED';

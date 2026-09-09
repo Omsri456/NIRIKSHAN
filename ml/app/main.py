@@ -336,6 +336,8 @@ async def ingest_csv(request: Request):
             "data": {
                 "updated": merge_result.get("updated", 0),
                 "inserted": merge_result.get("inserted", 0),
+                "updatedWorkIds": merge_result.get("updatedWorkIds", []),
+                "insertedWorkIds": merge_result.get("insertedWorkIds", []),
                 "totalWorksScored": scoring_summary.get("totalWorks", 0),
                 "riskDistribution": scoring_summary.get("riskDistribution", {}),
                 "elapsedSeconds": scoring_summary.get("elapsedSeconds", 0),

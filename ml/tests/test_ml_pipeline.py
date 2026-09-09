@@ -474,6 +474,8 @@ class TestCsvMergeAndBatchScore:
 
         assert result["updated"] == 1
         assert result["inserted"] == 1
+        assert result["updatedWorkIds"] == ["102"]
+        assert result["insertedWorkIds"] == ["103"]
         assert result["total"] == 3
 
         merged_df = pd.read_csv(existing_file)
