@@ -22,4 +22,11 @@ router.get('/alerts', authenticate, applyScopeFilter, riskController.alerts);
 // GET /api/risk/signals
 router.get('/signals', authenticate, applyScopeFilter, riskController.signals);
 
+// GET /api/risk/early-warnings
+router.get('/early-warnings', authenticate, applyScopeFilter, riskController.earlyWarnings);
+
+// PATCH /api/risk/early-warnings/:id/acknowledge
+router.patch('/early-warnings/:id/acknowledge', authenticate, riskController.acknowledgeEarlyWarning);
+
 export default router;
+

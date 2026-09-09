@@ -37,9 +37,15 @@ export const get = asyncHandler(async (req: Request, res: Response) => {
  */
 export const update = asyncHandler(async (req: Request, res: Response) => {
   const scopeFilter = buildScopeFilter(req.user as any);
-  const investigation = await investigationService.updateInvestigation(req.params.id, req.body, scopeFilter);
+  const investigation = await investigationService.updateInvestigation(
+    req.params.id,
+    req.body,
+    scopeFilter,
+    req.user
+  );
   res.json({ success: true, data: investigation });
 });
+
 
 /**
  * POST /api/investigations/:id/notes

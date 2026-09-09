@@ -27,6 +27,16 @@ export type InvestigationFinding =
   | 'REFERRED_FOR_ACTION'
   | null;
 
+export interface InvestigationHistoryEntry {
+  _id?: string;
+  field: string;
+  oldValue: any;
+  newValue: any;
+  changedBy?: string | null;
+  changedByName: string;
+  changedAt: string;
+}
+
 export interface Investigation {
   _id: string;
   workId: string;
@@ -35,6 +45,8 @@ export interface Investigation {
   assignedTo: string | null;  // User _id
   notes: InvestigationNote[];
   finding: InvestigationFinding;
+  history?: InvestigationHistoryEntry[];
   createdAt: string;
   updatedAt: string;
 }
+

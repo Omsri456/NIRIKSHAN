@@ -4,3 +4,5 @@ export { ExpenditureModel } from './Expenditure';
 export { RiskAssessmentModel } from './RiskAssessment';
 export { InvestigationModel } from './Investigation';
 export { DataImportModel } from './DataImport';
+export { EarlyWarningAlertModel } from './EarlyWarningAlert';
+
