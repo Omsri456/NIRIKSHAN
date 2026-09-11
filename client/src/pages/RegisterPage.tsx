@@ -13,6 +13,7 @@ export function RegisterPage() {
   const [role, setRole] = useState('DISTRICT_AUTHORITY');
   const [state, setState] = useState('');
   const [district, setDistrict] = useState('');
+  const [constituency, setConstituency] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,6 +35,7 @@ export function RegisterPage() {
         scope: {
           state: state.trim() || null,
           district: district.trim() || null,
+          constituency: role === 'MP' ? constituency.trim() || null : null,
         },
       });
       setSuccessMessage(msg || 'Registration successful — pending admin approval.');
@@ -264,6 +266,21 @@ export function RegisterPage() {
                 <option value="ADMIN">System Administrator</option>
               </select>
             </div>
+
+            {role === 'MP' && (
+              <div className="gov-form-field">
+                <label htmlFor="reg-constituency">Parliamentary Constituency (Lok Sabha)</label>
+                <input
+                  id="reg-constituency"
+                  type="text"
+                  className="gov-text-input"
+                  style={{ paddingLeft: '14px' }}
+                  placeholder="e.g. Mumbai North, Pune, Baramati"
+                  value={constituency}
+                  onChange={(e) => setConstituency(e.target.value)}
+                />
+              </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div className="gov-form-field">

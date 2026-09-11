@@ -27,9 +27,9 @@ export async function listWorks(query: WorkListQuery) {
   const limit = query.limit ?? 20;
 
   const filter: Record<string, unknown> = {};
-  if (query.state) filter['location.state'] = query.state;
-  if (query.district) filter['location.district'] = query.district;
-  if (query.constituency) filter['location.constituency'] = query.constituency;
+  if (query.state) filter['location.state'] = new RegExp(`^${escapeRegex(query.state.trim())}$`, 'i');
+  if (query.district) filter['location.district'] = new RegExp(`^${escapeRegex(query.district.trim())}$`, 'i');
+  if (query.constituency) filter['location.constituency'] = new RegExp(`^${escapeRegex(query.constituency.trim())}$`, 'i');
   if (query.status) filter['execution.status'] = query.status;
   // Search input is escaped so user-provided regex metacharacters cannot
   // create an unsafe or unbounded pattern.
