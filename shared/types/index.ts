@@ -10,3 +10,4 @@ export * from './investigation';
 export * from './api';
 export * from './dashboard';
 export * from './notification';
+export * from './recommendation';

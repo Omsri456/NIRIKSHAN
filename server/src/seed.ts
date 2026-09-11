@@ -18,6 +18,7 @@ import { UserModel } from './models/User';
 import { WorkModel } from './models/Work';
 import { ExpenditureModel } from './models/Expenditure';
 import { RiskAssessmentModel } from './models/RiskAssessment';
+import { WorkRecommendationModel } from './models/WorkRecommendation';
 
 const STATES = ['Maharashtra', 'Uttar Pradesh', 'Tamil Nadu', 'Karnataka'];
 const DISTRICTS: Record<string, string[]> = {
@@ -55,6 +56,7 @@ async function seed() {
     WorkModel.deleteMany({}),
     ExpenditureModel.deleteMany({}),
     RiskAssessmentModel.deleteMany({}),
+    WorkRecommendationModel.deleteMany({}),
   ]);
 
   // ── Users ─────────────────────────────────────────────
@@ -139,6 +141,46 @@ async function seed() {
     });
   }
   console.log(`✅ Created ${works.length} risk assessments\n`);
+
+  // ── Work Recommendations (MP Workflow) ───────────────
+  const mpUser = users[3]; // Shri Example MP
+  await WorkRecommendationModel.insertMany([
+    {
+      recommendedBy: mpUser._id,
+      constituency: 'Mumbai North',
+      district: 'Mumbai',
+      state: 'Maharashtra',
+      description: 'Installation of 50 Solar High-Mast Lights across Major Traffic Junctions in Dahisar and Borivali',
+      category: 'Community Infrastructure',
+      estimatedCost: 1800000,
+      justification: 'Improves night safety and surveillance for commuters and reduces public electricity consumption.',
+      status: 'SUBMITTED',
+    },
+    {
+      recommendedBy: mpUser._id,
+      constituency: 'Mumbai North',
+      district: 'Mumbai',
+      state: 'Maharashtra',
+      description: 'Upgradation of Maternity and Pediatric Health Center at Kandivali Shatabdi Public Hospital',
+      category: 'Health',
+      estimatedCost: 3500000,
+      justification: 'High daily OPD footfall requires specialized neonatal incubators and maternal recovery beds.',
+      status: 'APPROVED',
+      createdWorkId: works[0]?.workId || 'MPLADS-W-10001',
+    },
+    {
+      recommendedBy: mpUser._id,
+      constituency: 'Mumbai North',
+      district: 'Mumbai',
+      state: 'Maharashtra',
+      description: 'Construction of Sub-surface Rainwater Harvesting & Aquifer Recharging Wells in Charkop Sector 8',
+      category: 'Water Supply',
+      estimatedCost: 1200000,
+      justification: 'Combats seasonal water table depletion and prevents localized monsoon waterlogging.',
+      status: 'UNDER_REVIEW',
+    },
+  ]);
+  console.log(`✅ Created 3 sample work recommendations for MP workflow\n`);
 
   console.log('🎉 Seed complete!\n');
   console.log('Login credentials:');

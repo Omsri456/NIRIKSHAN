@@ -14,9 +14,21 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
+  const isMP = user?.role === 'MP';
+  const isAuthority =
+    user?.role === 'DISTRICT_AUTHORITY' ||
+    user?.role === 'STATE_AUTHORITY' ||
+    user?.role === 'MINISTRY' ||
+    user?.role === 'ADMIN';
 
   const navItems = [
     ...NAV_ITEMS,
+    ...(isMP
+      ? [{ to: '/recommend-work', label: 'Recommend Work', icon: RecommendIcon, end: false }]
+      : []),
+    ...(isAuthority
+      ? [{ to: '/recommendations-review', label: 'Review Recommendations', icon: ReviewIcon, end: false }]
+      : []),
     ...(isAdmin
       ? [
           { to: '/admin/data-imports', label: 'Data Import', icon: DataImportIcon, end: false },
@@ -179,3 +191,34 @@ function UserApprovalIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+function RecommendIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M10 2.5v8m0 0 3-3m-3 3-3-3"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4 12.5v3a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ReviewIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M6.5 10h7m-7-3h7m-7 6h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+

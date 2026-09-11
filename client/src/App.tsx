@@ -14,6 +14,8 @@ import { InvestigationDetailPage } from '@/pages/InvestigationDetailPage';
 import { AdminDataImportPage } from '@/pages/AdminDataImportPage';
 import { AdminUserApprovalPage } from '@/pages/AdminUserApprovalPage';
 import { RiskHeatmapPage } from '@/pages/RiskHeatmapPage';
+import { RecommendWorkPage } from '@/pages/RecommendWorkPage';
+import { RecommendationsReviewPage } from '@/pages/RecommendationsReviewPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import './App.css';
 
@@ -40,6 +42,8 @@ function App() {
             <Route path="risk-map" element={<RiskHeatmapPage />} />
             <Route path="investigations" element={<InvestigationsListPage />} />
             <Route path="investigations/:id" element={<InvestigationDetailPage />} />
+            <Route path="recommend-work" element={<RecommendWorkPage />} />
+            <Route path="recommendations-review" element={<RecommendationsReviewPage />} />
             <Route path="admin/data-imports" element={<AdminDataImportPage />} />
             <Route path="admin/user-approval" element={<AdminUserApprovalPage />} />
           </Route>

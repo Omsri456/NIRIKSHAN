@@ -19,7 +19,7 @@ export interface ImplementingAgency {
   type: string;
 }
 
-export interface WorkRecommendation {
+export interface WorkRecommendationInfo {
   date: string | null;
   amount: number;
 }
@@ -61,7 +61,7 @@ export interface Work {
   mp: WorkMp;
   location: WorkLocation;
   implementingAgency: ImplementingAgency;
-  recommendation: WorkRecommendation;
+  recommendation: WorkRecommendationInfo;
   execution: WorkExecution;
   financial: WorkFinancial;
   asset: WorkAsset;
