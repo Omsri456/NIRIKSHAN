@@ -21,6 +21,9 @@ async function importRealDataset() {
     process.exit(1);
   }
 
+  console.log('⏳ Clearing old temporary works...');
+  await WorkModel.deleteMany({});
+
   console.log(`\n⏳ Reading and parsing ${csvPath}...`);
 
   const fileStream = fs.createReadStream(csvPath);
@@ -35,14 +38,11 @@ async function importRealDataset() {
   let workBatch: any[] = [];
   let totalInserted = 0;
 
-  console.log('⏳ Clearing old temporary works...');
-  await WorkModel.deleteMany({});
-
   for await (const line of rl) {
     if (!line.trim()) continue;
 
     if (isHeader) {
-      headers = parseCsvLine(line);
+      headers = parseCsvLine(line).map((h) => h.replace(/^\uFEFF/, '').trim());
       isHeader = false;
       continue;
     }
