@@ -13,6 +13,7 @@ import { InvestigationsListPage } from '@/pages/InvestigationsListPage';
 import { InvestigationDetailPage } from '@/pages/InvestigationDetailPage';
 import { AdminDataImportPage } from '@/pages/AdminDataImportPage';
 import { AdminUserApprovalPage } from '@/pages/AdminUserApprovalPage';
+import { RiskHeatmapPage } from '@/pages/RiskHeatmapPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import './App.css';
 
@@ -36,11 +37,13 @@ function App() {
             <Route path="works/:workId" element={<WorkDetailPage />} />
             <Route path="high-risk" element={<HighRiskPage />} />
             <Route path="early-warnings" element={<EarlyWarningsPage />} />
+            <Route path="risk-map" element={<RiskHeatmapPage />} />
             <Route path="investigations" element={<InvestigationsListPage />} />
             <Route path="investigations/:id" element={<InvestigationDetailPage />} />
             <Route path="admin/data-imports" element={<AdminDataImportPage />} />
             <Route path="admin/user-approval" element={<AdminUserApprovalPage />} />
           </Route>
+
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AuthProvider>

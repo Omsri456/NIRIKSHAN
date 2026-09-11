@@ -19,4 +19,8 @@ router.get('/risk-distribution', dashboardController.riskDistribution);
 // GET /api/dashboard/states
 router.get('/states', dashboardController.states);
 
+// GET /api/dashboard/risk-map
+router.get('/risk-map', dashboardController.riskMap);
+
 export default router;
+

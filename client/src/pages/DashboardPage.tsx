@@ -17,6 +17,7 @@ import { TrendChart } from '@/components/charts/TrendChart';
 import { RiskDistributionChart } from '@/components/charts/RiskDistributionChart';
 import { StateTable } from '@/components/charts/StateTable';
 import { ErrorState, LoadingState } from '@/components/ui/States';
+
 import { formatCurrencyCompact, formatNumber } from '@/utils/format';
 import { ParliamentIllustration } from '@/components/ui/BrandAssets';
 

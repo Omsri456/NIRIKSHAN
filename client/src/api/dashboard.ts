@@ -1,6 +1,7 @@
 import type {
   ApiResponse,
   DashboardOverview,
+  DistrictRiskMapResponse,
   RiskDistributionItem,
   StateOverview,
   TrendDataPoint,
@@ -28,3 +29,11 @@ export async function fetchStates(): Promise<StateOverview[]> {
   const { data } = await apiClient.get<ApiResponse<StateOverview[]>>('/dashboard/states');
   return data.data;
 }
+
+export async function fetchDistrictsRiskMap(): Promise<DistrictRiskMapResponse> {
+  const { data } = await apiClient.get<ApiResponse<DistrictRiskMapResponse>>(
+    '/dashboard/risk-map'
+  );
+  return data.data;
+}
+

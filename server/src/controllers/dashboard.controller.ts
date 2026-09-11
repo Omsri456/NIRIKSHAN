@@ -38,3 +38,14 @@ export const states = asyncHandler(async (req: Request, res: Response) => {
   const data = await dashboardService.getStates(scopeFilter);
   res.json({ success: true, data });
 });
+
+/**
+ * GET /api/dashboard/risk-map
+ * Real district-level aggregation of existing works & risk assessments,
+ * strictly scoped to user's geographic permissions.
+ */
+export const riskMap = asyncHandler(async (req: Request, res: Response) => {
+  const scopeFilter = buildScopeFilter(req.user);
+  const data = await dashboardService.getDistrictsRiskSummary(scopeFilter, req.user);
+  res.json({ success: true, data });
+});
