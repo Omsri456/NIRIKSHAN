@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { extractErrorMessage } from '@/api/client';
-import { IndiaMonitoringVisualization, NirikshanEyeIcon, EmblemOfIndia, LoginHeroBrandLogo } from '@/components/ui/BrandAssets';
+import { IndiaMonitoringVisualization, ParliamentIllustration, NirikshanEyeIcon, EmblemOfIndia, LoginHeroBrandLogo } from '@/components/ui/BrandAssets';
 
 export function RegisterPage() {
   const { register, isAuthenticated } = useAuth();
@@ -46,15 +46,18 @@ export function RegisterPage() {
     <div className="gov-login-container">
       {/* Left Institutional Technology Panel */}
       <aside className="gov-login-left">
+        {/* Layer 2 & 3: Background Telemetry Map & Cropped Parliament Building */}
         <div className="login-left-bg-telemetry">
           <IndiaMonitoringVisualization />
         </div>
+        <div className="login-left-bg-parliament">
+          <ParliamentIllustration variant="login" />
+        </div>
 
-
+        {/* Top Header Information: Government of India + System Online */}
         <div className="login-header-meta">
           <div>
             <div className="login-gov-heading">Government of India</div>
-            <div className="login-gov-subheading">MPLADS Monitoring Platform</div>
             <div className="login-teal-line" />
           </div>
           <div style={{ textAlign: 'right' }}>
@@ -62,67 +65,65 @@ export function RegisterPage() {
               <span className="login-system-online-dot" />
               SYSTEM ONLINE
             </div>
-            <div className="login-tags-row">Account Registration &nbsp;|&nbsp; Role-Scoped Access</div>
           </div>
         </div>
 
+        {/* Hero Wordmark, Product Tagline, & Simplified Registration Copy */}
         <div className="login-hero-brand-section">
           <div className="login-brand-title">
             <LoginHeroBrandLogo />
           </div>
-          <h2 className="login-tagline-heading">Register for MPLADS Risk Intelligence Access.</h2>
+          <div style={{ fontSize: '13.5px', fontWeight: 500, color: '#94a3b8', letterSpacing: '0.02em', marginTop: '-12px', marginBottom: '22px' }}>
+            From data to accountable development.
+          </div>
+          <h2 className="login-tagline-heading">Create your NIRIKSHAN account.</h2>
           <p className="login-description">
-            Enroll your authorized administrative profile to access role-scoped risk intelligence,
-            automated anomaly detection models, and evidence-backed audit workflows.
+            Set up your account to get started.
           </p>
         </div>
 
-        <div>
-          <div style={{ fontSize: '11px', fontWeight: 600, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '8px' }}>
-            Authorization Stages
+        {/* Three Simplified Steps: YOUR DETAILS -> YOUR ACCESS -> READY TO GO */}
+        <div className="login-process-flow">
+          <div className="process-step">
+            <div className="process-step-icon-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </div>
+            <div className="process-step-content">
+              <span className="process-step-title">YOUR DETAILS</span>
+              <span className="process-step-desc">Enter your basic information</span>
+            </div>
           </div>
-          <div className="login-process-flow">
-            <div className="process-step">
-              <div className="process-step-icon-box">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-              </div>
-              <div className="process-step-content">
-                <span className="process-step-title">IDENTITY</span>
-                <span className="process-step-desc">Official Name & Email</span>
-              </div>
+
+          <div className="process-step-arrow">→</div>
+
+          <div className="process-step">
+            <div className="process-step-icon-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                <polyline points="2 17 12 22 22 17" />
+                <polyline points="2 12 12 17 22 12" />
+              </svg>
             </div>
-
-            <div className="process-step-arrow">→</div>
-
-            <div className="process-step">
-              <div className="process-step-icon-box">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                  <polyline points="2 17 12 22 22 17" />
-                  <polyline points="2 12 12 17 22 12" />
-                </svg>
-              </div>
-              <div className="process-step-content">
-                <span className="process-step-title">ROLE SCOPE</span>
-                <span className="process-step-desc">District / State / Ministry</span>
-              </div>
+            <div className="process-step-content">
+              <span className="process-step-title">YOUR ACCESS</span>
+              <span className="process-step-desc">Choose your area</span>
             </div>
+          </div>
 
-            <div className="process-step-arrow">→</div>
+          <div className="process-step-arrow">→</div>
 
-            <div className="process-step">
-              <div className="process-step-icon-box">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                </svg>
-              </div>
-              <div className="process-step-content">
-                <span className="process-step-title">ACCESS</span>
-                <span className="process-step-desc">Secure Dashboard</span>
-              </div>
+          <div className="process-step">
+            <div className="process-step-icon-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+            <div className="process-step-content">
+              <span className="process-step-title">READY TO GO</span>
+              <span className="process-step-desc">Access your workspace</span>
             </div>
           </div>
         </div>
@@ -143,7 +144,6 @@ export function RegisterPage() {
           <div className="login-card-brand-header" style={{ marginBottom: '16px' }}>
             <NirikshanEyeIcon className="login-card-eye-icon" style={{ width: '40px', height: '40px' }} />
             <div className="login-card-app-name">NIRIKSHAN</div>
-            <div className="login-card-app-sub">MPLADS MONITORING PLATFORM</div>
             <h1 className="login-welcome-title" style={{ fontSize: '19px', marginTop: '8px' }}>Register User</h1>
             <p className="login-welcome-sub" style={{ marginBottom: '16px' }}>Create your authorized administrative account.</p>
           </div>

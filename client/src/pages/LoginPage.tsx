@@ -43,11 +43,10 @@ export function LoginPage() {
         </div>
 
 
-        {/* Layer 4: Top Header Information */}
+        {/* Top Header Information */}
         <div className="login-header-meta">
           <div>
             <div className="login-gov-heading">Government of India</div>
-            <div className="login-gov-subheading">MPLADS Monitoring Platform</div>
             <div className="login-teal-line" />
           </div>
           <div style={{ textAlign: 'right' }}>
@@ -55,24 +54,24 @@ export function LoginPage() {
               <span className="login-system-online-dot" />
               SYSTEM ONLINE
             </div>
-            <div className="login-tags-row">SECURE &nbsp;|&nbsp; RELIABLE &nbsp;|&nbsp; IMPACT DRIVEN</div>
           </div>
         </div>
 
-        {/* Hero Wordmark & Tagline */}
+        {/* Hero Wordmark & Product Tagline */}
         <div className="login-hero-brand-section">
           <div className="login-brand-title">
             <LoginHeroBrandLogo />
           </div>
-
-          <h2 className="login-tagline-heading">From data to accountable development.</h2>
+          <div style={{ fontSize: '13.5px', fontWeight: 500, color: '#94a3b8', letterSpacing: '0.02em', marginTop: '-12px', marginBottom: '22px' }}>
+            From data to accountable development.
+          </div>
+          <h2 className="login-tagline-heading">Sign in to your account.</h2>
           <p className="login-description">
-            NIRIKSHAN analyzes MPLADS works, expenditure and payment data to detect anomalies,
-            explain risk and help officials prioritize investigation.
+            Access your monitoring workspace and role-scoped risk intelligence.
           </p>
         </div>
 
-        {/* Layer 4: Risk Intelligence Pipeline (DATA -> ANALYZE -> PRIORITIZE -> INVESTIGATE) */}
+        {/* Process Flow (DATA -> ANALYZE -> PRIORITIZE -> INVESTIGATE) */}
         <div className="login-process-flow">
           {/* 1. DATA */}
           <div className="process-step">
@@ -85,7 +84,7 @@ export function LoginPage() {
             </div>
             <div className="process-step-content">
               <span className="process-step-title">DATA</span>
-              <span className="process-step-desc">Works • Payments<br />Expenditure</span>
+              <span className="process-step-desc">Works & Expenditure</span>
             </div>
           </div>
 
@@ -101,7 +100,7 @@ export function LoginPage() {
             </div>
             <div className="process-step-content">
               <span className="process-step-title">ANALYZE</span>
-              <span className="process-step-desc">Detect irregularities<br />with AI</span>
+              <span className="process-step-desc">Detect anomalies</span>
             </div>
           </div>
 
@@ -120,7 +119,7 @@ export function LoginPage() {
             </div>
             <div className="process-step-content">
               <span className="process-step-title">PRIORITIZE</span>
-              <span className="process-step-desc">Highlight key cases<br />for review</span>
+              <span className="process-step-desc">Highlight risk</span>
             </div>
           </div>
 
@@ -135,7 +134,7 @@ export function LoginPage() {
             </div>
             <div className="process-step-content">
               <span className="process-step-title">INVESTIGATE</span>
-              <span className="process-step-desc">Enable evidence-based<br />action</span>
+              <span className="process-step-desc">Audit & take action</span>
             </div>
           </div>
         </div>
@@ -159,9 +158,8 @@ export function LoginPage() {
           <div className="login-card-brand-header">
             <NirikshanEyeIcon className="login-card-eye-icon" />
             <div className="login-card-app-name">NIRIKSHAN</div>
-            <div className="login-card-app-sub">MPLADS MONITORING PLATFORM</div>
             <h1 className="login-welcome-title">Welcome back</h1>
-            <p className="login-welcome-sub">Access your monitoring workspace.</p>
+            <p className="login-welcome-sub">Access your workspace.</p>
           </div>
 
           {error && <div className="form-error-banner">{error}</div>}
