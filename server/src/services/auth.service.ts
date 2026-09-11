@@ -40,6 +40,14 @@ export async function login({ email, password }: LoginCredentials) {
     throw new AppError(401, 'INVALID_CREDENTIALS', 'Invalid email or password.');
   }
 
+  if (user.approvalStatus === 'REJECTED') {
+    throw new AppError(403, 'ACCOUNT_REJECTED', 'Your account registration has been rejected by an administrator.');
+  }
+
+  if (user.approvalStatus !== 'APPROVED') {
+    throw new AppError(403, 'PENDING_APPROVAL', 'Your account is pending admin approval.');
+  }
+
   const token = jwt.sign({ userId: user._id }, env.JWT_SECRET, {
     expiresIn: env.JWT_EXPIRES_IN as any,
   });
@@ -80,7 +88,7 @@ export async function register(payload: RegisterPayload) {
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(payload.password, salt);
 
-  const user = await UserModel.create({
+  await UserModel.create({
     name: payload.name.trim(),
     email: emailLower,
     passwordHash,
@@ -91,27 +99,20 @@ export async function register(payload: RegisterPayload) {
       constituency: payload.scope?.constituency || null,
     },
     isActive: true,
-  });
-
-  const token = jwt.sign({ userId: user._id }, env.JWT_SECRET, {
-    expiresIn: env.JWT_EXPIRES_IN as any,
+    approvalStatus: 'PENDING',
   });
 
   return {
-    token,
-    user: {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      scope: user.scope,
-    },
+    message: 'Registration successful. Your account is pending admin approval.',
   };
 }
 
 /**
- * GET list of assignable users for investigation assignment.
+ * GET list of assignable users for investigation assignment (approved non-MP active users).
  */
 export async function listUsers() {
-  return UserModel.find({ isActive: true }, '_id name email role scope').lean();
+  return UserModel.find(
+    { isActive: true, approvalStatus: 'APPROVED', role: { $ne: 'MP' } },
+    '_id name email role scope'
+  ).lean();
 }

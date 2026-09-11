@@ -41,7 +41,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: string };
 
     const user = await UserModel.findById(decoded.userId).select('-passwordHash');
-    if (!user || !user.isActive) {
+    if (!user || !user.isActive || user.approvalStatus !== 'APPROVED') {
       res.status(401).json({
         success: false,
         error: { code: 'UNAUTHORIZED', message: 'Invalid or expired token.' },

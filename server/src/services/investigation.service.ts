@@ -133,6 +133,22 @@ export async function updateInvestigation(
     body.finding !== undefined ? (body.finding as string | null) : investigationToCheck.finding;
   const userRole = user?.role;
 
+  // Rule: MP can view and comment on investigations but cannot modify status, priority, finding, or assignment
+  if (userRole === 'MP') {
+    if (
+      body.status !== undefined ||
+      body.priority !== undefined ||
+      body.finding !== undefined ||
+      body.assignedTo !== undefined
+    ) {
+      throw new AppError(
+        403,
+        'FORBIDDEN',
+        'MPs can view and comment on investigations but cannot modify their status or findings.'
+      );
+    }
+  }
+
   // Rule 1: PENDING_VERIFICATION requires a finding to already be set or provided
   if (targetStatus === 'PENDING_VERIFICATION') {
     if (!effectiveFinding) {
@@ -244,7 +260,7 @@ export async function updateInvestigation(
 /**
  * POST /api/investigations/:id/notes — append a note to an investigation.
  */
-export async function addNote(id: string, content: string, user?: { _id?: string; name?: string }, scopeFilter: Record<string, unknown> = {}) {
+export async function addNote(id: string, content: string, user?: { _id?: string; name?: string; role?: string }, scopeFilter: Record<string, unknown> = {}) {
   const investigationToCheck = await InvestigationModel.findById(id).lean();
   if (!investigationToCheck) {
     throw new AppError(404, 'INVESTIGATION_NOT_FOUND', 'Investigation not found.');
@@ -269,6 +285,7 @@ export async function addNote(id: string, content: string, user?: { _id?: string
         notes: {
           author: user?._id,
           authorName: user?.name || 'Unknown',
+          authorRole: user?.role || null,
           content,
           createdAt: new Date(),
         },

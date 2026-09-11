@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type {
   DashboardOverview,
+  Investigation,
   RiskDistributionItem,
   StateOverview,
   TrendDataPoint,
 } from '@nirikshan/shared';
 import { UserRole } from '@nirikshan/shared';
 import * as dashboardApi from '@/api/dashboard';
+import * as investigationsApi from '@/api/investigations';
 import { extractErrorMessage } from '@/api/client';
 import { useAuth } from '@/context/AuthContext';
 import { StatCard } from '@/components/ui/StatCard';
@@ -28,6 +30,7 @@ interface DashboardData {
 export function DashboardPage() {
   const { user } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
+  const [mpInvestigations, setMpInvestigations] = useState<{ total: number; items: Investigation[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -42,6 +45,18 @@ export function DashboardPage() {
         dashboardApi.fetchStates(),
       ]);
       setData({ overview, trends, riskDistribution, states });
+
+      if (user?.role === UserRole.MP) {
+        try {
+          const invRes = await investigationsApi.fetchInvestigations({ limit: 5 });
+          setMpInvestigations({
+            total: invRes.pagination?.total ?? invRes.data.length,
+            items: invRes.data,
+          });
+        } catch {
+          // Non-critical supplementary data for MP
+        }
+      }
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {
@@ -51,7 +66,7 @@ export function DashboardPage() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [user]);
 
   const showStateBreakdown = user?.role === UserRole.MINISTRY || user?.role === UserRole.ADMIN;
 
@@ -119,6 +134,121 @@ export function DashboardPage() {
               variant="rose"
             />
           </div>
+
+          {/* Investigations on MP Recommended Works (when user is MP) */}
+          {user?.role === UserRole.MP && mpInvestigations && (
+            <div className="table-card" style={{ marginTop: 24, padding: '20px 24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      backgroundColor: '#f3e8ff',
+                      color: '#7e22ce',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      letterSpacing: '0.04em',
+                      border: '1px solid #e9d5ff',
+                    }}
+                  >
+                    MP
+                  </span>
+                  <div>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--slate-900)', margin: 0 }}>
+                      Investigations on your recommended works
+                    </h2>
+                    <p style={{ fontSize: '12.5px', color: '#64748b', margin: 0 }}>
+                      Active oversight cases in {user.scope?.constituency ? `${user.scope.constituency} constituency` : 'your constituency'}
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  to="/investigations"
+                  style={{
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    color: '#0f766e',
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <span>View all ({mpInvestigations.total})</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </Link>
+              </div>
+
+              {mpInvestigations.items.length === 0 ? (
+                <div style={{ fontSize: '13px', color: '#64748b', padding: '10px 0' }}>
+                  No active investigations flagged for works in your constituency.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {mpInvestigations.items.slice(0, 3).map((inv) => (
+                    <div
+                      key={inv._id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 14px',
+                        backgroundColor: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '6px',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--slate-800)' }}>
+                          Work #{inv.workId}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                            backgroundColor: '#e0f2fe',
+                            color: '#0369a1',
+                          }}
+                        >
+                          {inv.status}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                            backgroundColor:
+                              inv.priority === 'CRITICAL' || inv.priority === 'HIGH' ? '#fee2e2' : '#fef3c7',
+                            color:
+                              inv.priority === 'CRITICAL' || inv.priority === 'HIGH' ? '#b91c1c' : '#b45309',
+                          }}
+                        >
+                          {inv.priority}
+                        </span>
+                      </div>
+                      <Link
+                        to={`/investigations/${inv._id}`}
+                        style={{ fontSize: '12.5px', fontWeight: 600, color: '#0f766e', textDecoration: 'none' }}
+                      >
+                        Review Dossier &rarr;
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Main Analytics Area (Ref 2) */}
           <div className="analytics-grid">

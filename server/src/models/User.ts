@@ -11,6 +11,7 @@ export interface IUser extends Document {
     constituency: string | null;
   };
   isActive: boolean;
+  approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
 const UserSchema = new Schema<IUser>(
@@ -29,6 +30,11 @@ const UserSchema = new Schema<IUser>(
       constituency: { type: String, default: null },
     },
     isActive: { type: Boolean, default: true },
+    approvalStatus: {
+      type: String,
+      enum: ['PENDING', 'APPROVED', 'REJECTED'],
+      default: 'PENDING',
+    },
   },
   { timestamps: true }
 );

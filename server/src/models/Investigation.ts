@@ -8,6 +8,7 @@ export interface IInvestigation extends Document {
   notes: Array<{
     author: mongoose.Types.ObjectId;
     authorName: string;
+    authorRole?: string | null;
     content: string;
     createdAt: Date;
   }>;
@@ -41,6 +42,7 @@ const InvestigationSchema = new Schema<IInvestigation>(
       {
         author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
         authorName: { type: String, required: true },
+        authorRole: { type: String, default: null },
         content: { type: String, required: true },
         createdAt: { type: Date, default: Date.now },
       },

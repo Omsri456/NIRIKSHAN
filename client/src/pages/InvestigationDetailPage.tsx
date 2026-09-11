@@ -84,6 +84,7 @@ export function InvestigationDetailPage() {
   }
 
   const userRole = user?.role;
+  const isMP = userRole === 'MP';
   const isHighReviewer = userRole === 'MINISTRY' || userRole === 'ADMIN';
   const isStateAuthority = userRole === 'STATE_AUTHORITY';
   const canClose = isHighReviewer || isStateAuthority;
@@ -112,6 +113,7 @@ export function InvestigationDetailPage() {
   };
 
   const workDistrict = work?.location?.district?.trim().toLowerCase() || '';
+  const workState = work?.location?.state?.trim().toLowerCase() || '';
 
   const districtAuthorities = users.filter(
     (u) =>
@@ -120,15 +122,25 @@ export function InvestigationDetailPage() {
       u.scope.district.trim().toLowerCase() === workDistrict
   );
 
-  const stateAndMinistry = users.filter(
-    (u) => u.role === 'MINISTRY' || u.role === 'STATE_AUTHORITY' || u.role === 'ADMIN'
+  const stateAuthorities = users.filter(
+    (u) =>
+      u.role === 'STATE_AUTHORITY' &&
+      u.scope?.state &&
+      u.scope.state.trim().toLowerCase() === workState
   );
 
-  const otherAuthorities = users.filter(
-    (u) =>
-      !districtAuthorities.some((da) => da._id === u._id) &&
-      !stateAndMinistry.some((sm) => sm._id === u._id)
+  const centralAuthorities = users.filter(
+    (u) => u.role === 'MINISTRY' || u.role === 'ADMIN'
   );
+
+  const isCurrentAssigneeIncluded =
+    !investigation?.assignedTo ||
+    districtAuthorities.some((u) => u._id === investigation.assignedTo) ||
+    stateAuthorities.some((u) => u._id === investigation.assignedTo) ||
+    centralAuthorities.some((u) => u._id === investigation.assignedTo);
+  const currentAssignedUser = !isCurrentAssigneeIncluded
+    ? users.find((u) => u._id === investigation?.assignedTo)
+    : null;
 
   async function handleAddNote(event: FormEvent) {
     event.preventDefault();
@@ -212,7 +224,28 @@ export function InvestigationDetailPage() {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <strong style={{ color: '#0f172a', fontSize: '13px' }}>{note.authorName}</strong>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <strong style={{ color: '#0f172a', fontSize: '13px' }}>{note.authorName}</strong>
+                      {note.authorRole === 'MP' && (
+                        <span
+                          style={{
+                            fontSize: '10.5px',
+                            fontWeight: 700,
+                            letterSpacing: '0.03em',
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                            backgroundColor: '#f3e8ff',
+                            color: '#7e22ce',
+                            border: '1px solid #e9d5ff',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            lineHeight: '14px',
+                          }}
+                        >
+                          MP
+                        </span>
+                      )}
+                    </div>
                     <span style={{ color: '#64748b', fontSize: '11.5px' }}>{formatDateTime(note.createdAt)}</span>
                   </div>
                   <p style={{ fontSize: '13px', color: '#334155', lineHeight: 1.45 }}>{note.content}</p>
@@ -325,109 +358,158 @@ export function InvestigationDetailPage() {
               <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '6px' }}>
                 Workflow Status
               </label>
-              <select
-                className="table-search-input"
-                value={investigation.status}
-                disabled={isSaving}
-                onChange={(e) => handleStatusChange(e.target.value as InvestigationStatus)}
-              >
-                {availableStatuses.map((s) => (
-                  <option key={s} value={s}>
-                    {humanize(s)}
-                  </option>
-                ))}
-              </select>
+              {isMP ? (
+                <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--slate-800)', padding: '6px 0' }}>
+                  {humanize(investigation.status)}
+                </div>
+              ) : (
+                <select
+                  className="table-search-input"
+                  value={investigation.status}
+                  disabled={isSaving}
+                  onChange={(e) => handleStatusChange(e.target.value as InvestigationStatus)}
+                >
+                  {availableStatuses.map((s) => (
+                    <option key={s} value={s}>
+                      {humanize(s)}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div>
               <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '6px' }}>
                 Priority Level
               </label>
-              <select
-                className="table-search-input"
-                value={investigation.priority}
-                disabled={isSaving}
-                onChange={(e) =>
-                  handleUpdate({
-                    priority: e.target.value as investigationsApi.InvestigationUpdate['priority'],
-                  })
-                }
-              >
-                {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map((p) => (
-                  <option key={p} value={p}>
-                    {humanize(p)}
-                  </option>
-                ))}
-              </select>
+              {isMP ? (
+                <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--slate-800)', padding: '6px 0' }}>
+                  {humanize(investigation.priority)}
+                </div>
+              ) : (
+                <select
+                  className="table-search-input"
+                  value={investigation.priority}
+                  disabled={isSaving}
+                  onChange={(e) =>
+                    handleUpdate({
+                      priority: e.target.value as investigationsApi.InvestigationUpdate['priority'],
+                    })
+                  }
+                >
+                  {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map((p) => (
+                    <option key={p} value={p}>
+                      {humanize(p)}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div>
               <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '6px' }}>
                 Audit Finding
               </label>
-              <select
-                className="table-search-input"
-                value={investigation.finding ?? ''}
-                disabled={isSaving}
-                onChange={(e) =>
-                  handleUpdate({
-                    finding: (e.target.value || null) as InvestigationFinding,
-                  })
-                }
-              >
-                <option value="">Not yet determined</option>
-                {FINDING_OPTIONS.map((f) => (
-                  <option key={f} value={f}>
-                    {humanize(f)}
-                  </option>
-                ))}
-              </select>
+              {isMP ? (
+                <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--slate-800)', padding: '6px 0' }}>
+                  {investigation.finding ? humanize(investigation.finding) : 'Not yet determined'}
+                </div>
+              ) : (
+                <select
+                  className="table-search-input"
+                  value={investigation.finding ?? ''}
+                  disabled={isSaving}
+                  onChange={(e) =>
+                    handleUpdate({
+                      finding: (e.target.value || null) as InvestigationFinding,
+                    })
+                  }
+                >
+                  <option value="">Not yet determined</option>
+                  {FINDING_OPTIONS.map((f) => (
+                    <option key={f} value={f}>
+                      {humanize(f)}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div>
               <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '6px' }}>
                 Assigned Officer
               </label>
-              <select
-                className="table-search-input"
-                value={investigation.assignedTo ?? ''}
-                disabled={isSaving}
-                onChange={(e) =>
-                  handleUpdate({
-                    assignedTo: e.target.value || null,
-                  })
-                }
-              >
-                <option value="">Unassigned</option>
-                {districtAuthorities.length > 0 && (
-                  <optgroup label="District Authorities (In-Scope)">
-                    {districtAuthorities.map((u) => (
-                      <option key={u._id} value={u._id}>
-                        {u.name} ({u.email})
+              {isMP ? (
+                <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--slate-800)', padding: '6px 0' }}>
+                  {users.find((u) => u._id === investigation.assignedTo)?.name ||
+                    (investigation.assignedTo ? 'Assigned' : 'Unassigned')}
+                </div>
+              ) : (
+                <select
+                  className="table-search-input"
+                  value={investigation.assignedTo ?? ''}
+                  disabled={isSaving}
+                  onChange={(e) =>
+                    handleUpdate({
+                      assignedTo: e.target.value || null,
+                    })
+                  }
+                >
+                  <option value="">Unassigned</option>
+                  {currentAssignedUser && (
+                    <optgroup label="Current Assigned Officer">
+                      <option value={currentAssignedUser._id}>
+                        {currentAssignedUser.name} ({humanize(currentAssignedUser.role)})
                       </option>
-                    ))}
-                  </optgroup>
-                )}
-                {stateAndMinistry.length > 0 && (
-                  <optgroup label="State & Ministry Authorities">
-                    {stateAndMinistry.map((u) => (
-                      <option key={u._id} value={u._id}>
-                        {u.name} ({humanize(u.role)})
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-                {otherAuthorities.length > 0 && (
-                  <optgroup label="Other Officers">
-                    {otherAuthorities.map((u) => (
-                      <option key={u._id} value={u._id}>
-                        {u.name} ({humanize(u.role)})
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-              </select>
+                    </optgroup>
+                  )}
+                  {districtAuthorities.length > 0 && (
+                    <optgroup label={`District Authorities (${work?.location?.district || 'In-Scope'})`}>
+                      {districtAuthorities.map((u) => (
+                        <option key={u._id} value={u._id}>
+                          {u.name} ({u.email})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {stateAuthorities.length > 0 && (
+                    <optgroup label={`State Authorities (${work?.location?.state || 'In-Scope'})`}>
+                      {stateAuthorities.map((u) => (
+                        <option key={u._id} value={u._id}>
+                          {u.name} ({u.email})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {centralAuthorities.length > 0 && (
+                    <optgroup label="Central & Ministry Authorities (National Oversight)">
+                      {centralAuthorities.map((u) => (
+                        <option key={u._id} value={u._id}>
+                          {u.name} ({humanize(u.role)})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+              )}
             </div>
+
+            {isMP && (
+              <div
+                style={{
+                  fontSize: '11.5px',
+                  color: '#64748b',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                  padding: '8px 10px',
+                  lineHeight: 1.4,
+                  marginTop: '4px',
+                }}
+              >
+                MPs can review case progress and post comments in the notes section below. Status and audit findings are managed by designated authorities.
+              </div>
+            )}
           </div>
         </div>
       </div>

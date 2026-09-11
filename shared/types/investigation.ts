@@ -17,6 +17,7 @@ export interface InvestigationNote {
   _id: string;
   author: string;          // User _id
   authorName: string;
+  authorRole?: string | null;
   content: string;
   createdAt: string;
 }

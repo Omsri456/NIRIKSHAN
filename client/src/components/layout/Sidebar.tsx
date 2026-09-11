@@ -16,7 +16,12 @@ export function Sidebar() {
 
   const navItems = [
     ...NAV_ITEMS,
-    ...(isAdmin ? [{ to: '/admin/data-imports', label: 'Data Import', icon: DataImportIcon, end: false }] : []),
+    ...(isAdmin
+      ? [
+          { to: '/admin/data-imports', label: 'Data Import', icon: DataImportIcon, end: false },
+          { to: '/admin/user-approval', label: 'User Approval', icon: UserApprovalIcon, end: false },
+        ]
+      : []),
   ];
 
   return (
@@ -145,6 +150,16 @@ function DataImportIcon({ className }: { className?: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function UserApprovalIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12.5 16a4 4 0 0 0-8 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="8.5" cy="8" r="3" stroke="currentColor" strokeWidth="1.6" />
+      <path d="m13 9 1.8 1.8 3.2-3.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

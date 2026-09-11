@@ -19,7 +19,17 @@ export const loginSchema = {
 export const registerSchema = {
   body: z.object({
     name: z.string().min(1).max(100),
-    email: z.string().email().max(320),
+    email: z
+      .string()
+      .email()
+      .max(320)
+      .refine(
+        (val) => {
+          const lower = val.toLowerCase();
+          return lower.endsWith('gov.in') || lower.endsWith('nic.in');
+        },
+        { message: 'Email must end in gov.in or nic.in' }
+      ),
     password: z.string().min(6).max(200),
     role: z
       .enum(['MINISTRY', 'STATE_AUTHORITY', 'DISTRICT_AUTHORITY', 'MP', 'ADMIN'])

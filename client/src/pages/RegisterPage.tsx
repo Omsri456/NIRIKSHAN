@@ -14,6 +14,7 @@ export function RegisterPage() {
   const [state, setState] = useState('');
   const [district, setDistrict] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (isAuthenticated) {
@@ -25,7 +26,7 @@ export function RegisterPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await register({
+      const msg = await register({
         name,
         email,
         password,
@@ -35,6 +36,7 @@ export function RegisterPage() {
           district: district.trim() || null,
         },
       });
+      setSuccessMessage(msg || 'Registration successful — pending admin approval.');
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {
@@ -150,7 +152,57 @@ export function RegisterPage() {
 
           {error && <div className="form-error-banner">{error}</div>}
 
-          <form onSubmit={handleSubmit}>
+          {successMessage ? (
+            <div style={{ textAlign: 'center', padding: '20px 8px 8px' }}>
+              <div
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  backgroundColor: '#ecfdf5',
+                  border: '2px solid #a7f3d0',
+                  color: '#059669',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px',
+                }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--slate-900)', marginBottom: '8px' }}>
+                Registration Successful
+              </h2>
+              <p style={{ fontSize: '13.5px', color: '#64748b', lineHeight: 1.5, marginBottom: '20px' }}>
+                {successMessage}
+              </p>
+              <div
+                style={{
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  padding: '12px 14px',
+                  fontSize: '12.5px',
+                  color: '#475569',
+                  marginBottom: '24px',
+                  textAlign: 'left',
+                  lineHeight: 1.45,
+                }}
+              >
+                <strong>Security Notice:</strong> In accordance with government protocol, all new official accounts require verification by a NIRIKSHAN system administrator before dashboard access is granted.
+              </div>
+              <Link
+                to="/login"
+                className="btn-gov-primary"
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
+              >
+                <span>Go to Login</span>
+              </Link>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit}>
             <div className="gov-form-field">
               <label htmlFor="reg-name">Full Name</label>
               <input
@@ -265,6 +317,7 @@ export function RegisterPage() {
               <span>Back to Sign in</span>
             </Link>
           </form>
+          )}
         </div>
       </main>
     </div>

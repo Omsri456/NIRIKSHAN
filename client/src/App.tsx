@@ -12,6 +12,7 @@ import { EarlyWarningsPage } from '@/pages/EarlyWarningsPage';
 import { InvestigationsListPage } from '@/pages/InvestigationsListPage';
 import { InvestigationDetailPage } from '@/pages/InvestigationDetailPage';
 import { AdminDataImportPage } from '@/pages/AdminDataImportPage';
+import { AdminUserApprovalPage } from '@/pages/AdminUserApprovalPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import './App.css';
 
@@ -38,6 +39,7 @@ function App() {
             <Route path="investigations" element={<InvestigationsListPage />} />
             <Route path="investigations/:id" element={<InvestigationDetailPage />} />
             <Route path="admin/data-imports" element={<AdminDataImportPage />} />
+            <Route path="admin/user-approval" element={<AdminUserApprovalPage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
