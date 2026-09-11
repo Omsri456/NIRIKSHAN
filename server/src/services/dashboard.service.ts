@@ -65,8 +65,16 @@ export async function getOverview(scopeFilter: Record<string, unknown>) {
   };
 }
 
-export async function getTrends(scopeFilter: Record<string, unknown>) {
-  const works = await WorkModel.find(scopeFilter).lean();
+export async function getTrends(scopeFilter: Record<string, unknown>, timeframe = 'Quarterly') {
+  const works = await WorkModel.find(scopeFilter, {
+    workId: 1,
+    'execution.completionDate': 1,
+    'execution.startDate': 1,
+    'execution.status': 1,
+    'recommendation.date': 1,
+    'financial.totalExpenditure': 1,
+    createdAt: 1,
+  }).lean();
   const workIds = works.map(w => w.workId);
   
   const riskAssessments = await RiskAssessmentModel.aggregate([
@@ -77,16 +85,41 @@ export async function getTrends(scopeFilter: Record<string, unknown>) {
   
   const riskMap = new Map(riskAssessments.map(r => [r._id, r]));
 
-  const quarters = new Map<string, any>();
+  const buckets = new Map<string, any>();
   
   for (const w of works) {
-    const dateToUse = w.execution?.completionDate ? new Date(w.execution.completionDate) : new Date((w as any).updatedAt || new Date());
+    // Robust chronological anchoring:
+    // 1. Completion Date (if work completed)
+    // 2. Start Date (when work physically commenced)
+    // 3. Recommendation Date (when sanctioned/recommended)
+    // 4. Creation Date (immutable creation date; NEVER updatedAt which resets upon document edits/imports)
+    const rawDate =
+      w.execution?.completionDate ||
+      w.execution?.startDate ||
+      w.recommendation?.date ||
+      (w as any).createdAt;
+
+    const dateToUse = rawDate ? new Date(rawDate) : null;
+    if (!dateToUse || isNaN(dateToUse.getTime())) continue;
+
     const year = dateToUse.getFullYear();
-    const q = Math.floor(dateToUse.getMonth() / 3) + 1;
-    const period = `${year}-Q${q}`;
+    // Exclude anomalous/corrupt dates outside realistic operational window
+    if (year < 2022 || year > 2026) continue;
+
+    let period = '';
+    if (timeframe === 'Monthly') {
+      const m = String(dateToUse.getMonth() + 1).padStart(2, '0');
+      period = `${year}-${m}`;
+    } else if (timeframe === 'Annual') {
+      period = `${year}`;
+    } else {
+      // Default: Quarterly
+      const q = Math.floor(dateToUse.getMonth() / 3) + 1;
+      period = `${year}-Q${q}`;
+    }
     
-    if (!quarters.has(period)) {
-      quarters.set(period, {
+    if (!buckets.has(period)) {
+      buckets.set(period, {
         period,
         expenditure: 0,
         worksCompleted: 0,
@@ -96,33 +129,35 @@ export async function getTrends(scopeFilter: Record<string, unknown>) {
       });
     }
     
-    const qData = quarters.get(period);
-    qData.expenditure += w.financial?.totalExpenditure || 0;
+    const bData = buckets.get(period);
+    bData.expenditure += w.financial?.totalExpenditure || 0;
     if (w.execution?.status === 'COMPLETED') {
-        qData.worksCompleted++;
+        bData.worksCompleted++;
     }
     
     const risk = riskMap.get(w.workId);
     if (risk) {
-      qData.totalRiskScore += risk.score || 0;
-      qData.riskCount++;
+      bData.totalRiskScore += risk.score || 0;
+      bData.riskCount++;
       if (risk.level === 'HIGH' || risk.level === 'CRITICAL') {
-        qData.highRiskCount++;
+        bData.highRiskCount++;
       }
     }
   }
   
-  const results = Array.from(quarters.values()).map(q => ({
-    period: q.period,
-    expenditure: q.expenditure,
-    worksCompleted: q.worksCompleted,
-    averageRiskScore: q.riskCount > 0 ? Math.round(q.totalRiskScore / q.riskCount) : 0,
-    highRiskCount: q.highRiskCount
+  const results = Array.from(buckets.values()).map(b => ({
+    period: b.period,
+    expenditure: b.expenditure,
+    worksCompleted: b.worksCompleted,
+    averageRiskScore: b.riskCount > 0 ? Math.round(b.totalRiskScore / b.riskCount) : 0,
+    highRiskCount: b.highRiskCount
   }));
   
   results.sort((a, b) => a.period.localeCompare(b.period));
   
-  return results.slice(-4);
+  if (timeframe === 'Monthly') return results.slice(-8);
+  if (timeframe === 'Annual') return results.slice(-5);
+  return results.slice(-6);
 }
 
 export async function getRiskDistribution(scopeFilter: Record<string, unknown>) {

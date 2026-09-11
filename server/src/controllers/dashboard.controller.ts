@@ -17,7 +17,8 @@ export const overview = asyncHandler(async (req: Request, res: Response) => {
  */
 export const trends = asyncHandler(async (req: Request, res: Response) => {
   const scopeFilter = buildScopeFilter(req.user);
-  const data = await dashboardService.getTrends(scopeFilter);
+  const timeframe = (req.query.timeframe as string) || 'Quarterly';
+  const data = await dashboardService.getTrends(scopeFilter, timeframe);
   res.json({ success: true, data });
 });
 

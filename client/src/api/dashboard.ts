@@ -13,8 +13,10 @@ export async function fetchOverview(): Promise<DashboardOverview> {
   return data.data;
 }
 
-export async function fetchTrends(): Promise<TrendDataPoint[]> {
-  const { data } = await apiClient.get<ApiResponse<TrendDataPoint[]>>('/dashboard/trends');
+export async function fetchTrends(timeframe?: string): Promise<TrendDataPoint[]> {
+  const { data } = await apiClient.get<ApiResponse<TrendDataPoint[]>>('/dashboard/trends', {
+    params: timeframe ? { timeframe } : undefined,
+  });
   return data.data;
 }
 

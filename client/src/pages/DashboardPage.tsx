@@ -34,6 +34,21 @@ export function DashboardPage() {
   const [mpInvestigations, setMpInvestigations] = useState<{ total: number; items: Investigation[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [trendTimeframe, setTrendTimeframe] = useState<'Quarterly' | 'Monthly' | 'Annual'>('Quarterly');
+  const [isTrendsLoading, setIsTrendsLoading] = useState(false);
+
+  const handleTimeframeChange = async (nextTimeframe: 'Quarterly' | 'Monthly' | 'Annual') => {
+    setTrendTimeframe(nextTimeframe);
+    setIsTrendsLoading(true);
+    try {
+      const updatedTrends = await dashboardApi.fetchTrends(nextTimeframe);
+      setData((prev) => (prev ? { ...prev, trends: updatedTrends } : null));
+    } catch (err) {
+      console.error('Failed to update trends:', err);
+    } finally {
+      setIsTrendsLoading(false);
+    }
+  };
 
   const load = async () => {
     setIsLoading(true);
@@ -41,7 +56,7 @@ export function DashboardPage() {
     try {
       const [overview, trends, riskDistribution, states] = await Promise.all([
         dashboardApi.fetchOverview(),
-        dashboardApi.fetchTrends(),
+        dashboardApi.fetchTrends(trendTimeframe),
         dashboardApi.fetchRiskDistribution(),
         dashboardApi.fetchStates(),
       ]);
@@ -264,7 +279,12 @@ export function DashboardPage() {
                   </svg>
                   <h2 className="analytics-card-title">Expenditure & average risk trend</h2>
                 </div>
-                <select className="timeframe-select" defaultValue="Quarterly">
+                <select
+                  className="timeframe-select"
+                  value={trendTimeframe}
+                  disabled={isTrendsLoading}
+                  onChange={(e) => handleTimeframeChange(e.target.value as any)}
+                >
                   <option value="Quarterly">Quarterly</option>
                   <option value="Monthly">Monthly</option>
                   <option value="Annual">Annual</option>
