@@ -463,8 +463,14 @@ export async function getDistrictsRiskSummary(
     userScopeNote = `State Scope: ${userInfo.scope.state} (State Authority Restricted View)`;
   } else if (userInfo?.role === 'DISTRICT_AUTHORITY' && userInfo?.scope?.district) {
     userScopeNote = `District Scope: ${userInfo.scope.district} (${userInfo.scope.state || ''})`;
-  } else if (userInfo?.role === 'MP' && userInfo?.scope?.constituency) {
-    userScopeNote = `Constituency Scope: ${userInfo.scope.constituency} (MP Restricted View)`;
+  } else if (userInfo?.role === 'MP') {
+    if (userInfo?.scope?.constituency) {
+      userScopeNote = `Constituency Scope: ${userInfo.scope.constituency} (MP Restricted View)`;
+    } else if (userInfo?.scope?.district) {
+      userScopeNote = `District Scope: ${userInfo.scope.district} (${userInfo.scope.state || ''}) (MP View)`;
+    } else if (userInfo?.scope?.state) {
+      userScopeNote = `State Scope: ${userInfo.scope.state} (MP View)`;
+    }
   }
 
   const districts = Array.from(districtMap.values()).map((d) => {
