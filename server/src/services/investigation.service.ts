@@ -96,7 +96,12 @@ export async function getInvestigation(id: string, scopeFilter: Record<string, u
  * PATCH /api/investigations/:id — update status / priority / finding /
  * assignee. Only provided fields are updated.
  */
-export async function updateInvestigation(id: string, body: Record<string, unknown>, scopeFilter: Record<string, unknown> = {}) {
+export async function updateInvestigation(
+  id: string,
+  body: Record<string, unknown>,
+  scopeFilter: Record<string, unknown> = {},
+  user?: { _id?: string; name?: string }
+) {
   const investigationToCheck = await InvestigationModel.findById(id).lean();
   if (!investigationToCheck) {
     throw new AppError(404, 'INVESTIGATION_NOT_FOUND', 'Investigation not found.');
@@ -115,14 +120,67 @@ export async function updateInvestigation(id: string, body: Record<string, unkno
   }
 
   const update: Record<string, unknown> = {};
-  if (body.status !== undefined) update.status = body.status;
-  if (body.priority !== undefined) update.priority = body.priority;
-  if (body.finding !== undefined) update.finding = body.finding;
-  if (body.assignedTo !== undefined) update.assignedTo = body.assignedTo;
+  const historyEntries: Array<Record<string, unknown>> = [];
+  const changedByName = user?.name || 'System';
+  const changedBy = user?._id || null;
+  const now = new Date();
+
+  if (body.status !== undefined && body.status !== investigationToCheck.status) {
+    update.status = body.status;
+    historyEntries.push({
+      field: 'status',
+      oldValue: investigationToCheck.status,
+      newValue: body.status,
+      changedBy,
+      changedByName,
+      changedAt: now,
+    });
+  }
+
+  if (body.priority !== undefined && body.priority !== investigationToCheck.priority) {
+    update.priority = body.priority;
+    historyEntries.push({
+      field: 'priority',
+      oldValue: investigationToCheck.priority,
+      newValue: body.priority,
+      changedBy,
+      changedByName,
+      changedAt: now,
+    });
+  }
+
+  if (body.finding !== undefined && body.finding !== investigationToCheck.finding) {
+    update.finding = body.finding;
+    historyEntries.push({
+      field: 'finding',
+      oldValue: investigationToCheck.finding,
+      newValue: body.finding,
+      changedBy,
+      changedByName,
+      changedAt: now,
+    });
+  }
+
+  if (body.assignedTo !== undefined && String(body.assignedTo ?? '') !== String(investigationToCheck.assignedTo ?? '')) {
+    update.assignedTo = body.assignedTo;
+    historyEntries.push({
+      field: 'assignedTo',
+      oldValue: investigationToCheck.assignedTo,
+      newValue: body.assignedTo,
+      changedBy,
+      changedByName,
+      changedAt: now,
+    });
+  }
+
+  const mongoUpdate: Record<string, unknown> = { $set: update };
+  if (historyEntries.length > 0) {
+    mongoUpdate.$push = { history: { $each: historyEntries } };
+  }
 
   const investigation = await InvestigationModel.findByIdAndUpdate(
     id,
-    { $set: update },
+    mongoUpdate,
     { new: true, runValidators: true }
   ).lean();
 
@@ -131,6 +189,7 @@ export async function updateInvestigation(id: string, body: Record<string, unkno
   }
   return investigation;
 }
+
 
 /**
  * POST /api/investigations/:id/notes — append a note to an investigation.

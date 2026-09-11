@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { WorkModel } from '../models/Work';
 import { RiskAssessmentModel } from '../models/RiskAssessment';
+import { evaluateAndRecordEscalation } from './alertEngine.service';
+
 
 export interface ImportStats {
   processed: number;
@@ -166,9 +168,14 @@ export async function importMlRiskScores(jsonFilePath?: string): Promise<ImportS
       // Upsert to prevent duplicates: match on workId + modelVersion
       const existing = await RiskAssessmentModel.findOne({ workId, modelVersion });
       if (existing) {
+        await evaluateAndRecordEscalation(existing, docData);
         await RiskAssessmentModel.updateOne({ _id: existing._id }, { $set: docData });
         stats.updated++;
       } else {
+        const previous = await RiskAssessmentModel.findOne({ workId }).sort({ generatedAt: -1 });
+        if (previous) {
+          await evaluateAndRecordEscalation(previous, docData);
+        }
         await RiskAssessmentModel.create(docData);
         stats.inserted++;
       }

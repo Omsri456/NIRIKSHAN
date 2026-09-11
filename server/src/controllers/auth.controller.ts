@@ -35,3 +35,11 @@ export const logout = (_req: Request, res: Response) => {
 export const me = (req: Request, res: Response) => {
   res.json({ success: true, data: req.user });
 };
+
+/**
+ * GET /api/auth/users
+ */
+export const listUsers = asyncHandler(async (_req: Request, res: Response) => {
+  const data = await authService.listUsers();
+  res.json({ success: true, data });
+});

@@ -39,3 +39,9 @@ export async function fetchMe(): Promise<SafeUser> {
 export async function logout(): Promise<void> {
   await apiClient.post('/auth/logout');
 }
+
+export async function fetchUsers(): Promise<SafeUser[]> {
+  const { data } = await apiClient.get<ApiResponse<SafeUser[]>>('/auth/users');
+  return data.data;
+}
+

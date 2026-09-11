@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import type { Investigation, InvestigationFinding } from '@nirikshan/shared';
+import type { Investigation, InvestigationFinding, RiskAssessment, SafeUser } from '@nirikshan/shared';
 import { InvestigationStatus } from '@nirikshan/shared';
 import * as investigationsApi from '@/api/investigations';
+import * as worksApi from '@/api/works';
+import * as authApi from '@/api/auth';
 import { extractErrorMessage } from '@/api/client';
 import { RiskBadge, StatusPill } from '@/components/ui/RiskBadge';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
@@ -20,6 +22,8 @@ const FINDING_OPTIONS: Exclude<InvestigationFinding, null>[] = [
 export function InvestigationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [investigation, setInvestigation] = useState<Investigation | null>(null);
+  const [riskAssessment, setRiskAssessment] = useState<RiskAssessment | null>(null);
+  const [users, setUsers] = useState<SafeUser[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -33,6 +37,17 @@ export function InvestigationDetailPage() {
     try {
       const data = await investigationsApi.fetchInvestigation(id);
       setInvestigation(data);
+
+      try {
+        const [riskData, usersData] = await Promise.all([
+          worksApi.fetchWorkRisk(data.workId),
+          authApi.fetchUsers(),
+        ]);
+        setRiskAssessment(riskData);
+        setUsers(usersData);
+      } catch {
+        // Non-critical supplementary data
+      }
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {
@@ -101,51 +116,90 @@ export function InvestigationDetailPage() {
       )}
 
       <div className="grid grid-cols-3" style={{ alignItems: 'start' }}>
-        <div style={{ gridColumn: 'span 2' }} className="panel">
-          <div className="panel-header">
-            <h3>Notes</h3>
-            <span className="muted">{investigation.notes.length}</span>
-          </div>
-          <div className="panel-body">
-            {investigation.notes.length === 0 && (
-              <EmptyState
-                title="No notes yet"
-                message="Add findings, evidence references, or next steps below."
-              />
-            )}
-            {investigation.notes.map((note) => (
-              <div className="note-item" key={note._id}>
-                <div className="note-head">
-                  <span className="note-author">{note.authorName}</span>
-                  <span>{formatDateTime(note.createdAt)}</span>
-                </div>
-                <p className="note-content">{note.content}</p>
-              </div>
-            ))}
-
-            <form onSubmit={handleAddNote} style={{ marginTop: 20 }}>
-              <div className="field">
-                <label htmlFor="note">Add a note</label>
-                <textarea
-                  id="note"
-                  rows={3}
-                  value={noteContent}
-                  onChange={(e) => setNoteContent(e.target.value)}
-                  placeholder="Record what was reviewed, evidence found, or next steps…"
+        {/* Left Column: Notes & Risk Evidence */}
+        <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="panel">
+            <div className="panel-header">
+              <h3>Notes</h3>
+              <span className="muted">{investigation.notes.length}</span>
+            </div>
+            <div className="panel-body">
+              {investigation.notes.length === 0 && (
+                <EmptyState
+                  title="No notes yet"
+                  message="Add findings, evidence references, or next steps below."
                 />
-              </div>
-              <button
-                type="submit"
-                className="btn btn-primary btn-sm"
-                style={{ marginTop: 10 }}
-                disabled={isAddingNote || !noteContent.trim()}
-              >
-                {isAddingNote ? 'Adding…' : 'Add note'}
-              </button>
-            </form>
+              )}
+              {investigation.notes.map((note) => (
+                <div className="note-item" key={note._id}>
+                  <div className="note-head">
+                    <span className="note-author">{note.authorName}</span>
+                    <span>{formatDateTime(note.createdAt)}</span>
+                  </div>
+                  <p className="note-content">{note.content}</p>
+                </div>
+              ))}
+
+              <form onSubmit={handleAddNote} style={{ marginTop: 20 }}>
+                <div className="field">
+                  <label htmlFor="note">Add a note</label>
+                  <textarea
+                    id="note"
+                    rows={3}
+                    value={noteContent}
+                    onChange={(e) => setNoteContent(e.target.value)}
+                    placeholder="Record what was reviewed, evidence found, or next steps…"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-sm"
+                  style={{ marginTop: 10 }}
+                  disabled={isAddingNote || !noteContent.trim()}
+                >
+                  {isAddingNote ? 'Adding…' : 'Add note'}
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* Linked Risk Evidence Panel */}
+          <div className="panel">
+            <div className="panel-header">
+              <h3>Linked risk evidence</h3>
+              {riskAssessment && <RiskBadge level={riskAssessment.level} />}
+            </div>
+            <div className="panel-body">
+              {!riskAssessment || riskAssessment.signals.length === 0 ? (
+                <EmptyState
+                  title="No risk signals recorded"
+                  message="This work has no linked risk signals or has not been scored yet."
+                />
+              ) : (
+                riskAssessment.signals.map((signal, idx) => (
+                  <div className="signal-row" key={`${signal.type}-${idx}`}>
+                    <div className="signal-row-head">
+                      <span className="signal-name">{humanize(signal.type)}</span>
+                      <RiskBadge level={signal.severity} />
+                    </div>
+                    <p className="signal-explanation">{signal.explanation}</p>
+                    {Object.keys(signal.evidence ?? {}).length > 0 && (
+                      <div className="evidence-list">
+                        {Object.entries(signal.evidence).map(([key, value]) => (
+                          <span className="evidence-chip" key={key}>
+                            {key}: {String(value)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
+        {/* Right Column: Status & Timeline/Audit */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div className="panel">
             <div className="panel-header">
@@ -215,12 +269,33 @@ export function InvestigationDetailPage() {
                   ))}
                 </select>
               </div>
+
+              <div className="field">
+                <label htmlFor="assigneeSelect">Assigned investigator</label>
+                <select
+                  id="assigneeSelect"
+                  value={investigation.assignedTo ?? ''}
+                  disabled={isSaving}
+                  onChange={(e) =>
+                    handleUpdate({
+                      assignedTo: e.target.value || null,
+                    })
+                  }
+                >
+                  <option value="">Unassigned</option>
+                  {users.map((u) => (
+                    <option key={u._id} value={u._id}>
+                      {u.name} ({humanize(u.role)})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
           <div className="panel">
             <div className="panel-header">
-              <h3>Timeline</h3>
+              <h3>Timeline & Audit Trail</h3>
             </div>
             <div className="panel-body">
               <dl className="info-grid" style={{ gridTemplateColumns: '1fr' }}>
@@ -233,6 +308,28 @@ export function InvestigationDetailPage() {
                   <dd className="mono">{formatDateTime(investigation.updatedAt)}</dd>
                 </div>
               </dl>
+
+              {investigation.history && investigation.history.length > 0 && (
+                <>
+                  <hr className="divider" style={{ margin: '16px 0' }} />
+                  <div className="section-label" style={{ marginBottom: 12 }}>Change History</div>
+                  <div className="timeline">
+                    {investigation.history.map((h, i) => (
+                      <div className="timeline-item" key={h._id || i}>
+                        <span className="timeline-marker" />
+                        <div className="timeline-content">
+                          <div className="timeline-date">{formatDateTime(h.changedAt)}</div>
+                          <div style={{ marginTop: 2, fontSize: '0.85rem' }}>
+                            <strong>{h.changedByName}</strong> changed <em>{humanize(h.field)}</em> from{' '}
+                            <code className="mono">{h.oldValue ? String(h.oldValue) : 'none'}</code> to{' '}
+                            <code className="mono">{h.newValue ? String(h.newValue) : 'none'}</code>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
