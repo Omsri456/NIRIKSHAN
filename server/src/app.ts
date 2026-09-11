@@ -11,6 +11,7 @@ import riskRoutes from './routes/risk.routes';
 import investigationsRoutes from './routes/investigations.routes';
 import dataImportsRoutes from './routes/dataImports.routes';
 import userRoutes from './routes/user.routes';
+import workRecommendationRoutes from './routes/workRecommendation.routes';
 
 // Middleware imports
 import { errorHandler } from './middleware/errorHandler';
@@ -37,6 +38,7 @@ app.use('/api/risk', riskRoutes);
 app.use('/api/investigations', investigationsRoutes);
 app.use('/api/data-imports', dataImportsRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/recommendations', workRecommendationRoutes);
 
 // ── 404 Handler ──────────────────────────────────────────
 app.use((_req, res) => {
