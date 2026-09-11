@@ -9,3 +9,4 @@ export * from './risk';
 export * from './investigation';
 export * from './api';
 export * from './dashboard';
+export * from './notification';

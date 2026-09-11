@@ -2,6 +2,7 @@ import { useAuth } from '@/context/AuthContext';
 import { ROLE_LABELS, scopeDescriptor } from '@/utils/constants';
 import { initials } from '@/utils/format';
 import { EmblemOfIndia, IndiaTransparencyMark } from '@/components/ui/BrandAssets';
+import { NotificationBell } from '@/components/ui/NotificationBell';
 
 export function Topbar() {
   const { user, logout } = useAuth();
@@ -40,6 +41,8 @@ export function Topbar() {
           <IndiaTransparencyMark />
         </div>
 
+        {/* Notification Bell */}
+        <NotificationBell />
 
         {/* 3. User Identity Profile & Sign Out Button */}
         <div className="topbar-user-divider" />
