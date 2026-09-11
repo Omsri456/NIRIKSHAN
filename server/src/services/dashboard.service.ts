@@ -206,6 +206,135 @@ export async function getStates(scopeFilter: Record<string, unknown>) {
   }));
 }
 
+// Canonical cross-state and district normalization maps
+const CROSS_STATE_DISTRICTS: Record<string, string> = {
+  'azamgarh': 'Uttar Pradesh',
+  'etah': 'Uttar Pradesh',
+  'gopalganj': 'Bihar',
+  'purbi champaran': 'Bihar',
+  'pakyong': 'Sikkim',
+  'betul': 'Madhya Pradesh',
+  'saharsa': 'Bihar',
+  'tumakuru': 'Karnataka',
+  'kupwara': 'Jammu and Kashmir',
+  'vidisha': 'Madhya Pradesh',
+};
+
+const CANONICAL_DISTRICT_MAP: Record<string, Record<string, string>> = {
+  'maharashtra': {
+    'ahilyanagar': 'Ahmednagar',
+    'ahmednagar': 'Ahmednagar',
+    'ahmadnagar': 'Ahmednagar',
+    'chhatrapati sambhajinagar': 'Aurangabad',
+    'aurangabad': 'Aurangabad',
+    'sambhajinagar': 'Aurangabad',
+    'dharashiv': 'Osmanabad',
+    'osmanabad': 'Osmanabad',
+    'bid': 'Beed',
+    'beed': 'Beed',
+    'buldana': 'Buldhana',
+    'buldhana': 'Buldhana',
+    'garhchiroli': 'Gadchiroli',
+    'gadchiroli': 'Gadchiroli',
+    'gondiya': 'Gondia',
+    'gondia': 'Gondia',
+    'raigarh': 'Raigad',
+    'raigad': 'Raigad',
+    'mumbai': 'Mumbai',
+    'mumbai city': 'Mumbai',
+    'greater bombay': 'Mumbai',
+    'mumbai suburban': 'Mumbai Suburban',
+    'mumbai suburban district': 'Mumbai Suburban',
+    'thane': 'Thane',
+    'palghar': 'Palghar',
+  },
+  'odisha': {
+    'anugola': 'Angul',
+    'angul': 'Angul',
+    'baleshwar': 'Balasore',
+    'balasore': 'Balasore',
+    'baragarh': 'Bargarh',
+    'bargarh': 'Bargarh',
+    'baudh': 'Boudh',
+    'boudh': 'Boudh',
+    'debagada': 'Deogarh',
+    'deogarh': 'Deogarh',
+    'jagatsinghapur': 'Jagatsinghpur',
+    'jagatsinghpur': 'Jagatsinghpur',
+    'jajapur': 'Jajpur',
+    'jajpur': 'Jajpur',
+    'kandhamala': 'Kandhamal',
+    'kandhamal': 'Kandhamal',
+    'kendrapada': 'Kendrapara',
+    'kendrapara': 'Kendrapara',
+    'kendujhar': 'Keonjhar',
+    'keonjhar': 'Keonjhar',
+    'khordha': 'Khurda',
+    'khurda': 'Khurda',
+    'nabarangapur': 'Nabarangpur',
+    'nabarangpur': 'Nabarangpur',
+    'nayagada': 'Nayagarh',
+    'nayagarh': 'Nayagarh',
+    'subarnapur': 'Sonepur',
+    'sonepur': 'Sonepur',
+    'sundargarh': 'Sundargarh',
+    'sundergarh': 'Sundargarh',
+  },
+  'karnataka': {
+    'bangalore': 'Bengaluru Urban',
+    'bangalore urban': 'Bengaluru Urban',
+    'bengaluru urban': 'Bengaluru Urban',
+    'bangalore rural': 'Bengaluru Rural',
+    'bengaluru rural': 'Bengaluru Rural',
+    'belgaum': 'Belagavi',
+    'belagavi': 'Belagavi',
+    'bellary': 'Ballari',
+    'ballari': 'Ballari',
+    'bijapur': 'Vijayapura',
+    'vijayapura': 'Vijayapura',
+    'chikmagalur': 'Chikkamagaluru',
+    'chikkamagaluru': 'Chikkamagaluru',
+    'gulbarga': 'Kalaburagi',
+    'kalaburagi': 'Kalaburagi',
+    'mysore': 'Mysuru',
+    'mysuru': 'Mysuru',
+    'shimoga': 'Shivamogga',
+    'shivamogga': 'Shivamogga',
+    'tumkur': 'Tumakuru',
+    'tumakuru': 'Tumakuru',
+  },
+  'uttar pradesh': {
+    'allahabad': 'Prayagraj',
+    'prayagraj': 'Prayagraj',
+    'faizabad': 'Ayodhya',
+    'ayodhya': 'Ayodhya',
+    'kanshiram nagar': 'Kasganj',
+    'kasganj': 'Kasganj',
+    'sant ravidas nagar': 'Bhadohi',
+    'bhadohi': 'Bhadohi',
+    'siddharth nagar': 'Siddharthnagar',
+    'siddharthnagar': 'Siddharthnagar',
+  }
+};
+
+function resolveCanonicalLocation(rawState: string, rawDistrict: string): { state: string; district: string } {
+  const cleanState = (rawState || '').trim();
+  const cleanDist = (rawDistrict || '').trim();
+  const distLower = cleanDist.toLowerCase();
+
+  const trueState = CROSS_STATE_DISTRICTS[distLower];
+  const effectiveState = trueState || cleanState;
+  const stateLower = effectiveState.toLowerCase();
+
+  const stateDistMap = CANONICAL_DISTRICT_MAP[stateLower];
+  const canonicalDist = (stateDistMap && stateDistMap[distLower]) || cleanDist;
+
+  return {
+    state: effectiveState,
+    district: canonicalDist,
+  };
+}
+
 export async function getDistrictsRiskSummary(
   scopeFilter: Record<string, unknown>,
   userInfo?: { role?: string; scope?: { state?: string | null; district?: string | null; constituency?: string | null } }
@@ -237,7 +366,7 @@ export async function getDistrictsRiskSummary(
     riskMap.set(r._id, { score: r.score || 0, level: r.level || 'LOW' });
   }
 
-  // 3. District-level aggregation
+  // 3. District-level aggregation with canonical district resolution
   const districtMap = new Map<string, {
     district: string;
     state: string;
@@ -263,9 +392,18 @@ export async function getDistrictsRiskSummary(
   }>();
 
   for (const w of works) {
-    const district = w.location?.district;
-    const state = w.location?.state;
-    if (!district || !state) continue;
+    const rawDist = w.location?.district;
+    const rawState = w.location?.state;
+    if (!rawDist || !rawState) continue;
+
+    const { state, district } = resolveCanonicalLocation(rawState, rawDist);
+
+    // If user is restricted to a state authority role, ensure cross-state works do not leak
+    if (userInfo?.role === 'STATE_AUTHORITY' && userInfo?.scope?.state) {
+      if (state.toLowerCase() !== userInfo.scope.state.toLowerCase()) {
+        continue;
+      }
+    }
 
     const key = `${state}:::${district}`;
     if (!districtMap.has(key)) {
@@ -319,9 +457,13 @@ export async function getDistrictsRiskSummary(
     });
   }
 
-  // Determine userScopeNote for MP role constraint
+  // Determine userScopeNote for geographic role constraints
   let userScopeNote: string | undefined;
-  if (userInfo?.role === 'MP' && userInfo?.scope?.constituency) {
+  if (userInfo?.role === 'STATE_AUTHORITY' && userInfo?.scope?.state) {
+    userScopeNote = `State Scope: ${userInfo.scope.state} (State Authority Restricted View)`;
+  } else if (userInfo?.role === 'DISTRICT_AUTHORITY' && userInfo?.scope?.district) {
+    userScopeNote = `District Scope: ${userInfo.scope.district} (${userInfo.scope.state || ''})`;
+  } else if (userInfo?.role === 'MP' && userInfo?.scope?.constituency) {
     userScopeNote = `Constituency Scope: ${userInfo.scope.constituency} (MP Restricted View)`;
   }
 

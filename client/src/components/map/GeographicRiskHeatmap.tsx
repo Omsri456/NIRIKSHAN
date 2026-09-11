@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as maplibregl from 'maplibre-gl';
 import type { MapLayerMouseEvent } from 'maplibre-gl';
@@ -31,7 +31,7 @@ const RISK_COLORS = {
   HIGH: '#b45a1f',
   MEDIUM: '#a97418',
   LOW: '#2f7a4f',
-  NONE: '#363c4a',
+  NONE: 'rgba(226, 232, 240, 0.45)',
 };
 
 // Normalize names for robust cross-mapping between DB and GeoJSON
@@ -56,6 +56,11 @@ export function GeographicRiskHeatmap() {
   const [projectSearch, setProjectSearch] = useState<string>('');
   const [isMapActive, setIsMapActive] = useState<boolean>(false);
 
+  // Searchable State Dropdown state
+  const [stateDropdownOpen, setStateDropdownOpen] = useState<boolean>(false);
+  const [stateSearchQuery, setStateSearchQuery] = useState<string>('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   // 1. Fetch district risk aggregation from backend
   const loadRiskData = async () => {
     setIsLoading(true);
@@ -63,6 +68,11 @@ export function GeographicRiskHeatmap() {
     try {
       const response = await fetchDistrictsRiskMap();
       setMapData(response);
+
+      // If user is locked to a specific state (e.g. STATE_AUTHORITY), default selection to that state
+      if (response.userScope.state) {
+        setSelectedStateFilter(response.userScope.state);
+      }
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {
@@ -74,14 +84,20 @@ export function GeographicRiskHeatmap() {
     loadRiskData();
   }, []);
 
-  // 2. Click outside detector to lock scroll zoom
+  // 2. Click outside detectors (for map scroll-lock & searchable state dropdown)
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
+      // Lock map zoom when clicking outside the map container
       if (mapWrapperRef.current && !mapWrapperRef.current.contains(e.target as Node)) {
         if (mapRef.current) {
           mapRef.current.scrollZoom.disable();
         }
         setIsMapActive(false);
+      }
+
+      // Close state dropdown when clicking outside
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setStateDropdownOpen(false);
       }
     };
 
@@ -89,7 +105,7 @@ export function GeographicRiskHeatmap() {
     return () => window.removeEventListener('mousedown', handleGlobalClick);
   }, []);
 
-  // 3. Activate scroll zoom when clicking inside the map
+  // 3. Activate scroll zoom on click
   const handleMapFocus = () => {
     if (mapRef.current && !isMapActive) {
       mapRef.current.scrollZoom.enable();
@@ -101,15 +117,79 @@ export function GeographicRiskHeatmap() {
   useEffect(() => {
     if (!mapContainerRef.current || !mapData) return;
 
-    // Build comprehensive lookup map with normalizations
+    // Build comprehensive lookup map with normalizations and bidirectional aliases
+    const ALIAS_MAP: Record<string, string[]> = {
+      mumbai: ['mumbaicity', 'greaterbombay', 'southmumbai', 'bombay'],
+      mumbaisuburban: ['mumbaisuburbandistrict', 'suburbanmumbai'],
+      ahmednagar: ['ahilyanagar', 'ahmadnagar'],
+      aurangabad: ['chhatrapatisambhajinagar', 'sambhajinagar'],
+      osmanabad: ['dharashiv'],
+      beed: ['bid'],
+      buldhana: ['buldana'],
+      gadchiroli: ['garhchiroli'],
+      gondia: ['gondiya'],
+      raigad: ['raigarh'],
+      thane: ['thanecity'],
+      palghar: ['palghardistrict'],
+      kataka: ['cuttack'],
+      cuttack: ['kataka'],
+      khordha: ['khurda', 'bhubaneswar'],
+      khurda: ['khordha', 'bhubaneswar'],
+      baleshwar: ['balasore'],
+      balasore: ['baleshwar'],
+      kendujhar: ['keonjhar'],
+      keonjhar: ['kendujhar'],
+      baragada: ['bargarh', 'baragarh'],
+      bargarh: ['baragada', 'baragarh'],
+      sundaragada: ['sundergarh', 'sundargarh'],
+      sundargarh: ['sundergarh', 'sundaragada'],
+      anugola: ['angul'],
+      angul: ['anugola'],
+      kendrapada: ['kendrapara'],
+      kendrapara: ['kendrapada'],
+      jagatsinghapur: ['jagatsinghpur'],
+      jagatsinghpur: ['jagatsinghapur'],
+      nayagada: ['nayagarh'],
+      nayagarh: ['nayagada'],
+      balangir: ['bolangir'],
+      bolangir: ['balangir'],
+      subarnapur: ['sonepur'],
+      sonepur: ['subarnapur'],
+      kandhamala: ['kandhamal'],
+      kandhamal: ['kandhamala'],
+      debagada: ['deogarh'],
+      deogarh: ['debagada'],
+      bengaluruurban: ['bangalore', 'bangaloreurban', 'bengaluru'],
+      bengalururural: ['bangalorerural'],
+      belagavi: ['belgaum'],
+      ballari: ['bellary'],
+      vijayapura: ['bijapur'],
+      kalaburagi: ['gulbarga'],
+      mysuru: ['mysore'],
+      shivamogga: ['shimoga'],
+      tumakuru: ['tumkur'],
+      prayagraj: ['allahabad'],
+      ayodhya: ['faizabad'],
+      kasganj: ['kanshiramnagar'],
+      bhadohi: ['santravidasnagar'],
+    };
+
     const riskByDistrict = new Map<string, DistrictRiskSummary>();
     for (const d of mapData.districts) {
       const sKey = normalizeGeoKey(d.state);
       const dKey = normalizeGeoKey(d.district);
+
       riskByDistrict.set(`${sKey}:::${dKey}`, d);
       riskByDistrict.set(`${d.state.toLowerCase()}:::${d.district.toLowerCase()}`, d);
       riskByDistrict.set(dKey, d);
       riskByDistrict.set(d.district.toLowerCase(), d);
+
+      // Register all known alias variants
+      const aliases = ALIAS_MAP[dKey] || [];
+      for (const alias of aliases) {
+        riskByDistrict.set(`${sKey}:::${alias}`, d);
+        riskByDistrict.set(alias, d);
+      }
     }
 
     // Default center on India
@@ -117,10 +197,8 @@ export function GeographicRiskHeatmap() {
     let centerLat = 21.5937;
     let initialZoom = 4.3;
 
-    // If user is restricted to a state or district, center on their scope
-    if (mapData.userScope.state && mapData.districts.length > 0) {
-      centerLon = 75.7139;
-      centerLat = 19.7515;
+    // Center on state if user is restricted
+    if (mapData.userScope.state) {
       initialZoom = 6.2;
     }
 
@@ -144,7 +222,7 @@ export function GeographicRiskHeatmap() {
             minzoom: 0,
             maxzoom: 19,
             paint: {
-              'raster-opacity': 0.75,
+              'raster-opacity': 0.72,
               'raster-saturation': -0.15,
               'raster-contrast': 0.1,
             },
@@ -192,10 +270,10 @@ export function GeographicRiskHeatmap() {
           const riskLevel = riskInfo?.riskLevel || 'NONE';
 
           let fillColor = RISK_COLORS.NONE;
-          let fillOpacity = 0.35;
+          let fillOpacity = 0.30;
 
           if (totalWorks > 0) {
-            fillOpacity = 0.72;
+            fillOpacity = 0.75;
             if (riskLevel === 'CRITICAL') fillColor = RISK_COLORS.CRITICAL;
             else if (riskLevel === 'HIGH') fillColor = RISK_COLORS.HIGH;
             else if (riskLevel === 'MEDIUM') fillColor = RISK_COLORS.MEDIUM;
@@ -228,11 +306,19 @@ export function GeographicRiskHeatmap() {
           generateId: true,
         });
 
-        // 1. Fill Layer (Choropleth by Risk)
+        // Initial state filter logic (if user is locked to a state)
+        const initialActiveState = mapData.userScope.state || selectedStateFilter;
+        const initialFilter =
+          initialActiveState && initialActiveState !== 'ALL'
+            ? ['==', ['downcase', ['get', 'state']], initialActiveState.toLowerCase().trim()]
+            : ['!=', ['get', 'state'], ''];
+
+        // 1. Fill Layer (Choropleth by Risk) — strictly filtered to selected state if scoped
         map.addLayer({
           id: 'districts-fill',
           type: 'fill',
           source: 'districts-source',
+          filter: initialFilter as any,
           paint: {
             'fill-color': ['get', 'fillColor'],
             'fill-opacity': [
@@ -244,11 +330,12 @@ export function GeographicRiskHeatmap() {
           },
         });
 
-        // 2. District Border Lines
+        // 2. District Border Lines — strictly filtered to selected state if scoped
         map.addLayer({
           id: 'districts-borders',
           type: 'line',
           source: 'districts-source',
+          filter: initialFilter as any,
           paint: {
             'line-color': [
               'case',
@@ -270,7 +357,9 @@ export function GeographicRiskHeatmap() {
           id: 'state-selected-outline',
           type: 'line',
           source: 'districts-source',
-          filter: ['==', ['downcase', ['get', 'state']], '__NONE__'],
+          filter: (initialActiveState && initialActiveState !== 'ALL'
+            ? ['==', ['downcase', ['get', 'state']], initialActiveState.toLowerCase().trim()]
+            : ['==', ['downcase', ['get', 'state']], '__NONE__']) as any,
           paint: {
             'line-color': '#dc2626',
             'line-width': 3.5,
@@ -394,7 +483,7 @@ export function GeographicRiskHeatmap() {
     };
   }, [mapData]);
 
-  // 5. State selection zoom & red dotted outline effect
+  // 5. State selection zoom & removal of shapes of other states
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -402,21 +491,36 @@ export function GeographicRiskHeatmap() {
     const applyStateFilterAndZoom = () => {
       if (!map.getSource('districts-source')) return;
 
-      if (selectedStateFilter === 'ALL') {
+      const effectiveState = mapData?.userScope.state || selectedStateFilter;
+
+      if (!effectiveState || effectiveState === 'ALL') {
+        // Show all states
+        if (map.getLayer('districts-fill')) {
+          map.setFilter('districts-fill', ['!=', ['get', 'state'], ''] as any);
+        }
+        if (map.getLayer('districts-borders')) {
+          map.setFilter('districts-borders', ['!=', ['get', 'state'], ''] as any);
+        }
         if (map.getLayer('state-selected-outline')) {
-          map.setFilter('state-selected-outline', ['==', ['downcase', ['get', 'state']], '__NONE__']);
+          map.setFilter('state-selected-outline', ['==', ['downcase', ['get', 'state']], '__NONE__'] as any);
         }
         map.flyTo({ center: [78.9629, 21.5937], zoom: 4.3, duration: 1000 });
         return;
       }
 
-      const normState = selectedStateFilter.toLowerCase().trim();
+      // Filter map to ONLY show the selected state's shapes (removes all other state shapes)
+      const normState = effectiveState.toLowerCase().trim();
+
+      const stateOnlyFilter = ['==', ['downcase', ['get', 'state']], normState] as any;
+
+      if (map.getLayer('districts-fill')) {
+        map.setFilter('districts-fill', stateOnlyFilter);
+      }
+      if (map.getLayer('districts-borders')) {
+        map.setFilter('districts-borders', stateOnlyFilter);
+      }
       if (map.getLayer('state-selected-outline')) {
-        map.setFilter('state-selected-outline', [
-          '==',
-          ['downcase', ['get', 'state']],
-          normState,
-        ]);
+        map.setFilter('state-selected-outline', stateOnlyFilter);
       }
 
       // Calculate state bounding box
@@ -433,13 +537,19 @@ export function GeographicRiskHeatmap() {
 
         matchingFeatures.forEach((feat) => {
           const coords = feat.geometry?.coordinates;
-          if (feat.geometry?.type === 'Polygon' && coords && coords[0]) {
-            coords[0].forEach(([lon, lat]: [number, number]) => {
+          const processRing = (ring: [number, number][]) => {
+            ring.forEach(([lon, lat]: [number, number]) => {
               if (lon < minLon) minLon = lon;
               if (lon > maxLon) maxLon = lon;
               if (lat < minLat) minLat = lat;
               if (lat > maxLat) maxLat = lat;
             });
+          };
+
+          if (feat.geometry?.type === 'Polygon' && coords) {
+            coords.forEach(processRing);
+          } else if (feat.geometry?.type === 'MultiPolygon' && coords) {
+            coords.forEach((poly: any) => poly.forEach(processRing));
           }
         });
 
@@ -460,12 +570,29 @@ export function GeographicRiskHeatmap() {
     } else {
       map.once('load', applyStateFilterAndZoom);
     }
-  }, [selectedStateFilter]);
+  }, [selectedStateFilter, mapData]);
 
-  // Extract unique states available in authorized scope
-  const availableStates = Array.from(
-    new Set(mapData?.districts.map((d) => d.state).filter(Boolean) || [])
-  ).sort();
+  // Extract unique states available in authorized scope with district counts
+  const stateStats = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const d of mapData?.districts || []) {
+      if (d.state) {
+        map.set(d.state, (map.get(d.state) || 0) + 1);
+      }
+    }
+    return map;
+  }, [mapData]);
+
+  const availableStates = useMemo(() => {
+    return Array.from(stateStats.keys()).sort();
+  }, [stateStats]);
+
+  // Filtered list of states based on search query in the combobox
+  const filteredStateOptions = useMemo(() => {
+    if (!stateSearchQuery.trim()) return availableStates;
+    const q = stateSearchQuery.toLowerCase().trim();
+    return availableStates.filter((s) => s.toLowerCase().includes(q));
+  }, [availableStates, stateSearchQuery]);
 
   // Filter projects inside selected district by search
   const filteredProjects = (selectedDistrict?.projects || []).filter((p: DistrictProjectItem) => {
@@ -478,14 +605,20 @@ export function GeographicRiskHeatmap() {
     );
   });
 
+  const isStateLocked = Boolean(mapData?.userScope.state);
+
   const resetZoom = () => {
-    setSelectedStateFilter('ALL');
+    if (!isStateLocked) {
+      setSelectedStateFilter('ALL');
+    }
     if (mapRef.current) {
-      mapRef.current.flyTo({
-        center: [78.9629, 21.5937],
-        zoom: 4.3,
-        duration: 1000,
-      });
+      if (!isStateLocked) {
+        mapRef.current.flyTo({
+          center: [78.9629, 21.5937],
+          zoom: 4.3,
+          duration: 1000,
+        });
+      }
     }
   };
 
@@ -522,11 +655,13 @@ export function GeographicRiskHeatmap() {
                   fontWeight: 600,
                 }}
               >
-                MapLibre GIS
+                {isStateLocked ? `${mapData?.userScope.state} Authority View` : 'MapLibre GIS'}
               </span>
             </div>
             <p className="muted" style={{ margin: '4px 0 0', fontSize: 13, color: '#64748b' }}>
-              Spatial monitoring of MPLADS projects aggregated by district risk posture across India.
+              {isStateLocked
+                ? `Isolated state monitoring view showing exclusively ${mapData?.userScope.state} district works.`
+                : 'Spatial monitoring of MPLADS projects aggregated by district risk posture across India.'}
             </p>
             {mapData?.userScope.scopeNote && (
               <div
@@ -546,44 +681,173 @@ export function GeographicRiskHeatmap() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            {availableStates.length > 1 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <label style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>
-                  State:
-                </label>
-                <select
-                  className="input-select"
+            {/* Searchable State Dropdown (For National/Multi-State Viewers) */}
+            {!isStateLocked && availableStates.length > 1 && (
+              <div ref={dropdownRef} style={{ position: 'relative' }}>
+                <div
+                  onClick={() => setStateDropdownOpen((prev) => !prev)}
                   style={{
-                    fontSize: 13,
-                    padding: '6px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 8,
+                    padding: '8px 14px',
                     height: 38,
                     borderRadius: '6px',
                     border: '1px solid var(--border-card)',
                     background: '#ffffff',
+                    cursor: 'pointer',
+                    fontSize: 13,
                     fontWeight: 500,
-                    minWidth: 160,
+                    minWidth: 200,
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                   }}
-                  value={selectedStateFilter}
-                  onChange={(e) => setSelectedStateFilter(e.target.value)}
                 >
-                  <option value="ALL">All States ({availableStates.length})</option>
-                  {availableStates.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ color: '#64748b' }}>State:</span>
+                    <span style={{ color: '#0f172a', fontWeight: 600 }}>
+                      {selectedStateFilter === 'ALL'
+                        ? `All States (${availableStates.length})`
+                        : selectedStateFilter}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: 10, color: '#94a3b8' }}>
+                    {stateDropdownOpen ? '▲' : '▼'}
+                  </span>
+                </div>
+
+                {/* Dropdown Popup Menu */}
+                {stateDropdownOpen && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 4px)',
+                      left: 0,
+                      zIndex: 30,
+                      width: 260,
+                      maxHeight: 320,
+                      background: '#ffffff',
+                      border: '1px solid var(--border-card)',
+                      borderRadius: '8px',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {/* Search Input Bar */}
+                    <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-default)', background: 'var(--slate-50)' }}>
+                      <input
+                        type="text"
+                        placeholder="🔍 Search states..."
+                        value={stateSearchQuery}
+                        onChange={(e) => setStateSearchQuery(e.target.value)}
+                        autoFocus
+                        style={{
+                          width: '100%',
+                          padding: '6px 10px',
+                          fontSize: 12,
+                          borderRadius: '4px',
+                          border: '1px solid #cbd5e1',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
+
+                    {/* Options List */}
+                    <div style={{ overflowY: 'auto', maxHeight: 250, padding: '4px 0' }}>
+                      <div
+                        onClick={() => {
+                          setSelectedStateFilter('ALL');
+                          setStateDropdownOpen(false);
+                          setStateSearchQuery('');
+                        }}
+                        style={{
+                          padding: '8px 14px',
+                          fontSize: 12.5,
+                          fontWeight: selectedStateFilter === 'ALL' ? 700 : 500,
+                          color: selectedStateFilter === 'ALL' ? 'var(--navy-800)' : '#334155',
+                          background: selectedStateFilter === 'ALL' ? 'var(--slate-100)' : 'transparent',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--slate-100)')}
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.background =
+                            selectedStateFilter === 'ALL' ? 'var(--slate-100)' : 'transparent')
+                        }
+                      >
+                        <span>All States (National View)</span>
+                        <span style={{ fontSize: 11, color: '#64748b' }}>{availableStates.length} states</span>
+                      </div>
+
+                      {filteredStateOptions.length === 0 ? (
+                        <div style={{ padding: '12px 14px', fontSize: 12, color: '#94a3b8', textAlign: 'center' }}>
+                          No states found
+                        </div>
+                      ) : (
+                        filteredStateOptions.map((s) => {
+                          const isSelected = selectedStateFilter === s;
+                          const count = stateStats.get(s) || 0;
+                          return (
+                            <div
+                              key={s}
+                              onClick={() => {
+                                setSelectedStateFilter(s);
+                                setStateDropdownOpen(false);
+                                setStateSearchQuery('');
+                              }}
+                              style={{
+                                padding: '8px 14px',
+                                fontSize: 12.5,
+                                fontWeight: isSelected ? 700 : 500,
+                                color: isSelected ? 'var(--navy-800)' : '#334155',
+                                background: isSelected ? 'var(--slate-100)' : 'transparent',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--slate-100)')}
+                              onMouseLeave={(e) =>
+                                (e.currentTarget.style.background = isSelected ? 'var(--slate-100)' : 'transparent')
+                              }
+                            >
+                              <span>{s}</span>
+                              <span
+                                style={{
+                                  fontSize: 11,
+                                  background: isSelected ? '#1e293b' : 'var(--slate-200)',
+                                  color: isSelected ? '#ffffff' : '#475569',
+                                  padding: '1px 6px',
+                                  borderRadius: 10,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {count} districts
+                              </span>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            <button
-              type="button"
-              className="btn btn-secondary"
-              style={{ padding: '6px 14px', height: 38, borderRadius: '6px', fontSize: 13 }}
-              onClick={resetZoom}
-            >
-              Reset Map View
-            </button>
+            {!isStateLocked && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ padding: '6px 14px', height: 38, borderRadius: '6px', fontSize: 13 }}
+                onClick={resetZoom}
+              >
+                Reset Map View
+              </button>
+            )}
           </div>
         </div>
 
@@ -771,6 +1035,7 @@ export function GeographicRiskHeatmap() {
                         height: 12,
                         borderRadius: 3,
                         background: RISK_COLORS.NONE,
+                        border: '1px solid #64748b',
                       }}
                     />
                     <span style={{ color: '#94a3b8' }}>No Active Works</span>
@@ -794,7 +1059,7 @@ export function GeographicRiskHeatmap() {
                         }}
                       />
                       <span style={{ color: '#fca5a5', fontWeight: 600 }}>
-                        {selectedStateFilter} Boundary
+                        {selectedStateFilter} Scope
                       </span>
                     </div>
                   )}
