@@ -58,6 +58,26 @@ export interface RiskAlert {
   isRead: boolean;
 }
 
+export type EarlyWarningTriggerType = 'LEVEL_ESCALATION' | 'RAPID_SCORE_INCREASE';
+export type EarlyWarningStatus = 'UNSEEN' | 'ACKNOWLEDGED';
+
+/** Automated Early Warning Alert for risk level escalation or rapid score jump */
+export interface EarlyWarningAlert {
+  _id: string;
+  workId: string;
+  triggerType: EarlyWarningTriggerType;
+  previousScore: number;
+  newScore: number;
+  previousLevel: RiskLevel;
+  newLevel: RiskLevel;
+  scoreDelta: number;
+  status: EarlyWarningStatus;
+  modelVersion: string;
+  triggeredAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** Helper: derive RiskLevel from a 0–100 score */
 export function getRiskLevel(score: number): RiskLevel {
   if (score >= 75) return RiskLevel.CRITICAL;
@@ -65,3 +85,4 @@ export function getRiskLevel(score: number): RiskLevel {
   if (score >= 25) return RiskLevel.MEDIUM;
   return RiskLevel.LOW;
 }
+

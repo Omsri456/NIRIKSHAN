@@ -10,9 +10,9 @@ const router = Router();
 // POST /api/data-imports — Admin-only unless explicitly permitted
 router.post(
   '/',
-  validate(createDataImportSchema),
   authenticate,
   authorize('ADMIN'),
+  validate(createDataImportSchema),
   dataImportController.create
 );
 

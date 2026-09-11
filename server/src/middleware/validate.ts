@@ -71,6 +71,8 @@ export function validate(schemas: ValidationSchemas) {
  * with the validated values, removing any unexpected/invalid entries.
  */
 function applyParsed(target: Record<string, unknown>, source: Record<string, unknown>): void {
+  if (!target || typeof target !== 'object') return;
+  if (!source || typeof source !== 'object') return;
   for (const key of Object.keys(target)) {
     delete target[key];
   }

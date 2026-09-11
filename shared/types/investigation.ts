@@ -6,6 +6,7 @@
 export enum InvestigationStatus {
   OPEN = 'OPEN',
   UNDER_REVIEW = 'UNDER_REVIEW',
+  PENDING_VERIFICATION = 'PENDING_VERIFICATION',
   RESOLVED = 'RESOLVED',
   DISMISSED = 'DISMISSED',
 }
@@ -16,6 +17,7 @@ export interface InvestigationNote {
   _id: string;
   author: string;          // User _id
   authorName: string;
+  authorRole?: string | null;
   content: string;
   createdAt: string;
 }
@@ -27,6 +29,16 @@ export type InvestigationFinding =
   | 'REFERRED_FOR_ACTION'
   | null;
 
+export interface InvestigationHistoryEntry {
+  _id?: string;
+  field: string;
+  oldValue: any;
+  newValue: any;
+  changedBy?: string | null;
+  changedByName: string;
+  changedAt: string;
+}
+
 export interface Investigation {
   _id: string;
   workId: string;
@@ -35,6 +47,8 @@ export interface Investigation {
   assignedTo: string | null;  // User _id
   notes: InvestigationNote[];
   finding: InvestigationFinding;
+  history?: InvestigationHistoryEntry[];
   createdAt: string;
   updatedAt: string;
 }
+

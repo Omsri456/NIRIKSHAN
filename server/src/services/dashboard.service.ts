@@ -48,7 +48,7 @@ export async function getOverview(scopeFilter: Record<string, unknown>) {
   
   const activeInvestigations = await InvestigationModel.countDocuments({
     workId: { $in: workIds },
-    status: { $in: ['OPEN', 'UNDER_REVIEW'] }
+    status: { $in: ['OPEN', 'UNDER_REVIEW', 'PENDING_VERIFICATION'] }
   });
   
   return {

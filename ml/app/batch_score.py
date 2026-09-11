@@ -26,19 +26,21 @@ import io
 import json
 import time
 
-# Ensure UTF-8 output on Windows consoles
-if sys.platform == 'win32':
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
-
 # Ensure the project root is on the path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(0, project_root)
 
+if sys.platform == 'win32' and hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 import pandas as pd
 import numpy as np
 
-from ml.app.feature_engineering import engineer_features
+from ml.app.feature_engineering import engineer_features, engineer_features_incremental, save_peer_stats
 from ml.app.services.cost_anomaly import CostAnomalyDetector
 from ml.app.services.timeline_anomaly import TimelineAnomalyDetector
 from ml.app.services.payment_anomaly import PaymentAnomalyDetector
@@ -47,7 +49,7 @@ from ml.app.services.compliance import ComplianceEngine
 from ml.app.services.risk_engine import RiskEngine
 
 
-def main():
+def run_batch_scoring(input_path=None, output_path=None, model_dir=None):
     start_time = time.time()
 
     print("=" * 65)
@@ -57,14 +59,20 @@ def main():
 
     # ── Paths ──────────────────────────────────────────────────────────
     data_dir = os.path.join(project_root, 'data', 'processed')
-    model_dir = os.path.join(project_root, 'ml', 'models')
+    if model_dir is None:
+        model_dir = os.path.join(project_root, 'ml', 'models')
     os.makedirs(model_dir, exist_ok=True)
 
-    input_path = os.path.join(data_dir, 'unified_works.csv')
-    output_path = os.path.join(data_dir, 'risk_scores.json')
-    features_path = os.path.join(data_dir, 'ml_features.csv')
-    similarity_path = os.path.join(data_dir, 'similarity_matches.json')
+    if input_path is None:
+        input_path = os.path.join(data_dir, 'unified_works.csv')
+    if output_path is None:
+        output_path = os.path.join(data_dir, 'risk_scores.json')
+
+    output_dir = os.path.dirname(output_path) or data_dir
+    features_path = os.path.join(output_dir, 'ml_features.csv')
+    similarity_path = os.path.join(output_dir, 'similarity_matches.json')
     embeddings_path = os.path.join(model_dir, 'embeddings.npz')
+    peer_stats_path = os.path.join(model_dir, 'peer_stats.json')
 
     # ── Step 1: Load data ──────────────────────────────────────────────
     print(f"\n[1/7] Loading data...")
@@ -78,6 +86,9 @@ def main():
     # Save enriched features
     df.to_csv(features_path, index=False, encoding='utf-8')
     print(f"  Saved enriched features to {features_path}")
+
+    # Save peer stats cache for fast incremental scoring
+    save_peer_stats(df, peer_stats_path)
 
     # ── Step 3: Cost anomaly model ─────────────────────────────────────
     print(f"\n[3/7] Cost Anomaly Detection...")
@@ -177,7 +188,7 @@ def main():
     elapsed = time.time() - start_time
 
     print("\n" + "=" * 65)
-    print("  ✅ BATCH SCORING COMPLETE")
+    print("  [SUCCESS] BATCH SCORING COMPLETE")
     print("=" * 65)
     print(f"\n  Total works scored: {len(results):,}")
     print(f"  Time elapsed:       {elapsed:.1f}s")
@@ -185,7 +196,7 @@ def main():
     for level in ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']:
         count = distribution[level]
         pct = count / len(results) * 100
-        bar = '█' * int(pct / 2)
+        bar = '#' * int(pct / 2)
         print(f"    {level:>8}: {count:>6,} ({pct:5.1f}%) {bar}")
 
     print(f"\n  Output files:")
@@ -208,12 +219,237 @@ def main():
             "similarityMatches": len(similarity_results),
         },
     }
-    summary_path = os.path.join(data_dir, 'scoring_summary.json')
+    summary_path = os.path.join(output_dir, 'scoring_summary.json')
     with open(summary_path, 'w') as f:
         json.dump(summary, f, indent=2)
     print(f"    Summary:        {summary_path}")
     print()
 
+    return summary
+
+
+def run_incremental_scoring(target_work_ids: set[str] | list[str] = None, new_csv_source=None, input_path=None, output_path=None, model_dir=None):
+    """
+    Score ONLY the specified workIds (or newly provided CSV rows) using pre-trained models
+    and cached peer statistics.
+
+    This avoids retraining all 4 models on every upload and avoids full-population
+    feature engineering. Instead it:
+      1. Calls csv_merge.py if new_csv_source is provided to persist new rows into unified_works.csv
+      2. Requires cost_anomaly.joblib, payment_anomaly.joblib, and peer_stats.json
+         (falls back to run_batch_scoring() if any are missing)
+      3. Extracts only the target rows and calls engineer_features_incremental()
+      4. Loads cost and payment anomaly detectors via .load()
+      5. Initializes TimelineAnomalyDetector via .load_stats() using cached global stats
+      6. Looks up similarity matches from similarity_matches.json (new works get similarity_score = 0)
+      7. Computes unified risk scores via RiskEngine & ComplianceEngine
+      8. Merges results into existing risk_scores.json by workId
+      9. Returns summary dict matching API contract
+    """
+    start_time = time.time()
+
+    data_dir = os.path.join(project_root, 'data', 'processed')
+    if model_dir is None:
+        model_dir = os.path.join(project_root, 'ml', 'models')
+
+    if input_path is None:
+        input_path = os.path.join(data_dir, 'unified_works.csv')
+    if output_path is None:
+        output_path = os.path.join(data_dir, 'risk_scores.json')
+
+    output_dir = os.path.dirname(output_path) or data_dir
+    similarity_path = os.path.join(output_dir, 'similarity_matches.json')
+
+    cost_model_path = os.path.join(model_dir, 'cost_anomaly.joblib')
+    payment_model_path = os.path.join(model_dir, 'payment_anomaly.joblib')
+    peer_stats_path = os.path.join(model_dir, 'peer_stats.json')
+
+    # Step 0: Persist new rows into unified_works.csv via csv_merge if new_csv_source is provided
+    if new_csv_source is not None:
+        print("\n[Incremental] Merging new CSV rows into unified_works.csv...")
+        from ml.app.csv_merge import merge_unified_works_csv
+        merge_res = merge_unified_works_csv(new_csv_source, existing_path=input_path, output_path=input_path)
+        new_ids = set(str(wid).strip() for wid in (merge_res.get("updatedWorkIds", []) + merge_res.get("insertedWorkIds", [])))
+        if target_work_ids is None:
+            target_work_ids = new_ids
+        else:
+            target_work_ids = set(str(w).strip() for w in target_work_ids).union(new_ids)
+
+    # Check if required models and peer_stats exist — if not, fall back to full batch scoring
+    if (not os.path.exists(cost_model_path) or
+        not os.path.exists(payment_model_path) or
+        not os.path.exists(peer_stats_path)):
+        print("[Incremental] Missing model artifacts or peer_stats.json — falling back to full batch scoring.")
+        return run_batch_scoring(input_path, output_path, model_dir)
+
+    target_work_ids = set(str(w).strip() for w in (target_work_ids or []))
+
+    print("=" * 65)
+    print("  NIRIKSHAN — Incremental Scoring Pipeline")
+    print(f"  Target works to score: {len(target_work_ids)}")
+    print("=" * 65)
+
+    if not target_work_ids:
+        print("  No target works specified — nothing to score.")
+        return {
+            "completedAt": pd.Timestamp.now().isoformat(),
+            "totalWorks": 0,
+            "elapsedSeconds": round(time.time() - start_time, 1),
+            "modelVersion": "nirikshan-ml-v1.0",
+            "riskDistribution": {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0},
+            "incrementalMode": True,
+        }
+
+    # Step 1: Extract ONLY target rows
+    print(f"\n[1/5] Extracting target rows from {input_path}...")
+    full_df = pd.read_csv(input_path, low_memory=False)
+    full_df['workId'] = full_df['workId'].astype(str).str.strip()
+    target_df = full_df[full_df['workId'].isin(target_work_ids)].copy()
+    print(f"  Found {len(target_df):,} works matching target IDs")
+
+    if target_df.empty:
+        print("  No matching target works found in dataset.")
+        return {
+            "completedAt": pd.Timestamp.now().isoformat(),
+            "totalWorks": 0,
+            "elapsedSeconds": round(time.time() - start_time, 1),
+            "modelVersion": "nirikshan-ml-v1.0",
+            "riskDistribution": {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0},
+            "incrementalMode": True,
+        }
+
+    # Step 2: Feature engineering on only target rows using cached peer stats
+    print(f"\n[2/5] Incremental feature engineering using {peer_stats_path}...")
+    target_df = engineer_features_incremental(target_df, peer_stats_path)
+
+    # Step 3: Load models and score target rows
+    print(f"\n[3/5] Scoring with pre-trained models...")
+    cost_detector = CostAnomalyDetector()
+    cost_detector.load(cost_model_path)
+    target_df['costAnomalyScore'] = cost_detector.batch_predict(target_df)
+
+    with open(peer_stats_path, 'r', encoding='utf-8') as f:
+        cached_peer_stats = json.load(f)
+
+    timeline_detector = TimelineAnomalyDetector()
+    timeline_detector.load_stats(cached_peer_stats)
+    target_df['timelineAnomalyScore'] = timeline_detector.batch_predict(target_df)
+
+    payment_detector = PaymentAnomalyDetector()
+    payment_detector.load(payment_model_path)
+    target_df['paymentAnomalyScore'] = payment_detector.batch_predict(target_df)
+
+    # Step 4: Similarity lookup
+    print(f"\n[4/5] Looking up similarity matches...")
+    similarity_results = {}
+    if os.path.exists(similarity_path):
+        with open(similarity_path, 'r', encoding='utf-8') as f:
+            similarity_results = json.load(f)
+
+    # Step 5: Risk engine scoring
+    print(f"\n[5/5] Computing risk scores for {len(target_df):,} works...")
+    compliance_engine = ComplianceEngine()
+    risk_engine = RiskEngine()
+
+    new_results = []
+    for idx, row in target_df.iterrows():
+        work_id = str(row['workId'])
+        sim_matches = similarity_results.get(work_id, [])
+        max_sim_score = max([m.get('similarity', 0.0) for m in sim_matches], default=0.0)
+
+        compliance_flags = compliance_engine.check(row)
+
+        cost_evidence = cost_detector.get_evidence(row)
+        timeline_evidence = timeline_detector.get_evidence(row)
+        payment_evidence = payment_detector.get_evidence(row)
+
+        sim_evidence = None
+        if sim_matches:
+            sim_evidence = {
+                "category": "SIMILARITY",
+                "severity": "MEDIUM" if max_sim_score >= 0.85 else "LOW",
+                "title": f"Found {len(sim_matches)} similar works",
+                "score": max_sim_score,
+            }
+
+        risk = risk_engine.compute(
+            cost_score=row.get('costAnomalyScore', 0),
+            timeline_score=row.get('timelineAnomalyScore', 0),
+            payment_score=row.get('paymentAnomalyScore', 0),
+            similarity_score=max_sim_score,
+            compliance_flags=compliance_flags,
+            work_data=row,
+            similarity_matches=sim_matches,
+            cost_evidence=cost_evidence,
+            timeline_evidence=timeline_evidence,
+            payment_evidence=payment_evidence,
+            similarity_evidence=sim_evidence,
+        )
+        new_results.append(risk)
+
+    # Merge results into existing risk_scores.json
+    existing_scores = []
+    if os.path.exists(output_path):
+        with open(output_path, 'r', encoding='utf-8') as f:
+            existing_scores = json.load(f)
+
+    scores_map = {str(s['workId']): s for s in existing_scores}
+    for r in new_results:
+        scores_map[str(r['workId'])] = r
+
+    all_results = list(scores_map.values())
+    print(f"\n  Writing {len(all_results):,} total risk scores to {output_path}...")
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(all_results, f, indent=2, ensure_ascii=False, default=str)
+
+    # Also update ml_features.csv if it exists
+    features_path = os.path.join(output_dir, 'ml_features.csv')
+    if os.path.exists(features_path):
+        try:
+            feat_df = pd.read_csv(features_path, low_memory=False)
+            feat_df['workId'] = feat_df['workId'].astype(str).str.strip()
+            feat_df = feat_df[~feat_df['workId'].isin(target_df['workId'])].copy()
+            updated_feat = pd.concat([feat_df, target_df], ignore_index=True)
+            updated_feat.to_csv(features_path, index=False, encoding='utf-8')
+        except Exception as e:
+            print(f"  Warning: could not update {features_path}: {e}")
+
+    distribution = risk_engine.get_distribution(all_results)
+    elapsed = time.time() - start_time
+
+    print("\n" + "=" * 65)
+    print("  [SUCCESS] INCREMENTAL SCORING COMPLETE")
+    print("=" * 65)
+    print(f"\n  Works scored (incremental): {len(new_results):,}")
+    print(f"  Total works in dataset:    {len(all_results):,}")
+    print(f"  Time elapsed:              {elapsed:.1f}s")
+
+    summary = {
+        "completedAt": pd.Timestamp.now().isoformat(),
+        "totalWorks": len(new_results),
+        "totalWorksInDataset": len(all_results),
+        "elapsedSeconds": round(elapsed, 1),
+        "modelVersion": risk_engine.MODEL_VERSION,
+        "riskDistribution": distribution,
+        "incrementalMode": True,
+        "targetWorkIds": len(target_work_ids),
+    }
+
+    summary_path = os.path.join(output_dir, 'scoring_summary.json')
+    with open(summary_path, 'w') as f:
+        json.dump(summary, f, indent=2)
+
+    return summary
+
+
+
+def main():
+    return run_batch_scoring()
+
 
 if __name__ == "__main__":
+    if sys.platform == 'win32':
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
     main()
+

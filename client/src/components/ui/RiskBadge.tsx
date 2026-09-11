@@ -1,23 +1,23 @@
-import { RiskLevel } from '@nirikshan/shared';
+import type { RiskLevel, SignalSeverity, InvestigationPriority, WorkStatus } from '@nirikshan/shared';
 import { humanize } from '@/utils/format';
 
-const LEVEL_CLASS: Record<RiskLevel, string> = {
-  [RiskLevel.LOW]: 'badge-low',
-  [RiskLevel.MEDIUM]: 'badge-medium',
-  [RiskLevel.HIGH]: 'badge-high',
-  [RiskLevel.CRITICAL]: 'badge-critical',
-};
+export function RiskBadge({ level }: { level: RiskLevel | SignalSeverity | InvestigationPriority | string }) {
+  const norm = level.toLowerCase();
+  const label = level.charAt(0) + level.slice(1).toLowerCase();
 
-export function RiskBadge({ level }: { level: RiskLevel | string }) {
-  const className = LEVEL_CLASS[level as RiskLevel] ?? 'badge-neutral';
   return (
-    <span className={`badge ${className}`}>
-      <span className="badge-dot" style={{ background: 'currentColor' }} />
-      {humanize(level)}
+    <span className={`gov-risk-badge ${norm}`}>
+      <span className="gov-risk-badge-dot" />
+      <span>{label}</span>
     </span>
   );
 }
 
-export function StatusPill({ status }: { status: string }) {
-  return <span className="status-pill">{humanize(status)}</span>;
+export function StatusPill({ status }: { status: WorkStatus | string }) {
+  const norm = status.toLowerCase().replace(/_/g, '-');
+  return (
+    <span className={`status-pill ${norm}`}>
+      {humanize(status)}
+    </span>
+  );
 }

@@ -18,4 +18,8 @@ router.post('/logout', authController.logout);
 // GET /api/auth/me
 router.get('/me', authenticate, authController.me);
 
+// GET /api/auth/users
+router.get('/users', authenticate, authController.listUsers);
+
 export default router;
+

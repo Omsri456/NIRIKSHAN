@@ -43,7 +43,9 @@ export interface InvestigationUpdate {
   status?: InvestigationStatus;
   priority?: InvestigationPriority;
   finding?: InvestigationFinding;
+  assignedTo?: string | null;
 }
+
 
 export async function updateInvestigation(
   id: string,

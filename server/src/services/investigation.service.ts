@@ -24,6 +24,15 @@ export async function createInvestigation(body: { workId: string; priority?: str
     }
   }
 
+  // Prevent duplicate open investigations for the same work
+  const existing = await InvestigationModel.findOne({
+    workId: body.workId,
+    status: { $in: ['OPEN', 'UNDER_REVIEW', 'PENDING_VERIFICATION'] },
+  });
+  if (existing) {
+    throw new AppError(409, 'INVESTIGATION_EXISTS', 'An active investigation already exists for this work.');
+  }
+
   return InvestigationModel.create({
     workId: body.workId,
     priority: body.priority || 'MEDIUM',
@@ -96,7 +105,12 @@ export async function getInvestigation(id: string, scopeFilter: Record<string, u
  * PATCH /api/investigations/:id — update status / priority / finding /
  * assignee. Only provided fields are updated.
  */
-export async function updateInvestigation(id: string, body: Record<string, unknown>, scopeFilter: Record<string, unknown> = {}) {
+export async function updateInvestigation(
+  id: string,
+  body: Record<string, unknown>,
+  scopeFilter: Record<string, unknown> = {},
+  user?: { _id?: string; name?: string; role?: string }
+) {
   const investigationToCheck = await InvestigationModel.findById(id).lean();
   if (!investigationToCheck) {
     throw new AppError(404, 'INVESTIGATION_NOT_FOUND', 'Investigation not found.');
@@ -114,15 +128,125 @@ export async function updateInvestigation(id: string, body: Record<string, unkno
     }
   }
 
+  const targetStatus = body.status !== undefined ? (body.status as string) : undefined;
+  const effectiveFinding =
+    body.finding !== undefined ? (body.finding as string | null) : investigationToCheck.finding;
+  const userRole = user?.role;
+
+  // Rule: MP can view and comment on investigations but cannot modify status, priority, finding, or assignment
+  if (userRole === 'MP') {
+    if (
+      body.status !== undefined ||
+      body.priority !== undefined ||
+      body.finding !== undefined ||
+      body.assignedTo !== undefined
+    ) {
+      throw new AppError(
+        403,
+        'FORBIDDEN',
+        'MPs can view and comment on investigations but cannot modify their status or findings.'
+      );
+    }
+  }
+
+  // Rule 1: PENDING_VERIFICATION requires a finding to already be set or provided
+  if (targetStatus === 'PENDING_VERIFICATION') {
+    if (!effectiveFinding) {
+      throw new AppError(400, 'VALIDATION_ERROR', 'A finding must be set before requesting verification.');
+    }
+  }
+
+  // Rule 2: Setting status to RESOLVED or DISMISSED requires role MINISTRY, STATE_AUTHORITY, or ADMIN
+  if (targetStatus === 'RESOLVED' || targetStatus === 'DISMISSED') {
+    const canClose = ['MINISTRY', 'STATE_AUTHORITY', 'ADMIN'].includes(userRole || '');
+    if (!canClose) {
+      throw new AppError(
+        403,
+        'FORBIDDEN',
+        'Only State Authority, Ministry, or Admin can resolve or dismiss an investigation.'
+      );
+    }
+
+    // Rule 3: If finding is REFERRED_FOR_ACTION, only MINISTRY or ADMIN may set status to RESOLVED or DISMISSED
+    if (effectiveFinding === 'REFERRED_FOR_ACTION' && userRole === 'STATE_AUTHORITY') {
+      throw new AppError(403, 'FORBIDDEN', 'Only Ministry can close a case referred for action.');
+    }
+  }
+
+  // Prevent changing finding to REFERRED_FOR_ACTION on already resolved/dismissed case if user is STATE_AUTHORITY
+  if (
+    body.finding === 'REFERRED_FOR_ACTION' &&
+    (targetStatus === 'RESOLVED' ||
+      targetStatus === 'DISMISSED' ||
+      (!targetStatus &&
+        (investigationToCheck.status === 'RESOLVED' || investigationToCheck.status === 'DISMISSED'))) &&
+    userRole === 'STATE_AUTHORITY'
+  ) {
+    throw new AppError(403, 'FORBIDDEN', 'Only Ministry can close a case referred for action.');
+  }
+
   const update: Record<string, unknown> = {};
-  if (body.status !== undefined) update.status = body.status;
-  if (body.priority !== undefined) update.priority = body.priority;
-  if (body.finding !== undefined) update.finding = body.finding;
-  if (body.assignedTo !== undefined) update.assignedTo = body.assignedTo;
+  const historyEntries: Array<Record<string, unknown>> = [];
+  const changedByName = user?.name || 'System';
+  const changedBy = user?._id || null;
+  const now = new Date();
+
+  if (body.status !== undefined && body.status !== investigationToCheck.status) {
+    update.status = body.status;
+    historyEntries.push({
+      field: 'status',
+      oldValue: investigationToCheck.status,
+      newValue: body.status,
+      changedBy,
+      changedByName,
+      changedAt: now,
+    });
+  }
+
+  if (body.priority !== undefined && body.priority !== investigationToCheck.priority) {
+    update.priority = body.priority;
+    historyEntries.push({
+      field: 'priority',
+      oldValue: investigationToCheck.priority,
+      newValue: body.priority,
+      changedBy,
+      changedByName,
+      changedAt: now,
+    });
+  }
+
+  if (body.finding !== undefined && body.finding !== investigationToCheck.finding) {
+    update.finding = body.finding;
+    historyEntries.push({
+      field: 'finding',
+      oldValue: investigationToCheck.finding,
+      newValue: body.finding,
+      changedBy,
+      changedByName,
+      changedAt: now,
+    });
+  }
+
+  if (body.assignedTo !== undefined && String(body.assignedTo ?? '') !== String(investigationToCheck.assignedTo ?? '')) {
+    update.assignedTo = body.assignedTo;
+    historyEntries.push({
+      field: 'assignedTo',
+      oldValue: investigationToCheck.assignedTo,
+      newValue: body.assignedTo,
+      changedBy,
+      changedByName,
+      changedAt: now,
+    });
+  }
+
+  const mongoUpdate: Record<string, unknown> = { $set: update };
+  if (historyEntries.length > 0) {
+    mongoUpdate.$push = { history: { $each: historyEntries } };
+  }
 
   const investigation = await InvestigationModel.findByIdAndUpdate(
     id,
-    { $set: update },
+    mongoUpdate,
     { new: true, runValidators: true }
   ).lean();
 
@@ -132,10 +256,11 @@ export async function updateInvestigation(id: string, body: Record<string, unkno
   return investigation;
 }
 
+
 /**
  * POST /api/investigations/:id/notes — append a note to an investigation.
  */
-export async function addNote(id: string, content: string, user?: { _id?: string; name?: string }, scopeFilter: Record<string, unknown> = {}) {
+export async function addNote(id: string, content: string, user?: { _id?: string; name?: string; role?: string }, scopeFilter: Record<string, unknown> = {}) {
   const investigationToCheck = await InvestigationModel.findById(id).lean();
   if (!investigationToCheck) {
     throw new AppError(404, 'INVESTIGATION_NOT_FOUND', 'Investigation not found.');
@@ -160,6 +285,7 @@ export async function addNote(id: string, content: string, user?: { _id?: string
         notes: {
           author: user?._id,
           authorName: user?.name || 'Unknown',
+          authorRole: user?.role || null,
           content,
           createdAt: new Date(),
         },

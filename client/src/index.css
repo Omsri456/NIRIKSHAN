@@ -1,118 +1,136 @@
 /* ============================================================
-   NIRIKSHAN — Design Tokens
-   A functional, data-dense audit console for public officials.
-   Palette: deep civic navy + warm signal amber, restrained.
-   Type: IBM Plex Sans for UI, IBM Plex Mono for figures & IDs.
+   NIRIKSHAN — Institutional Design Tokens & Global Styles
+   Government of India • MPLADS Risk Intelligence System
    ============================================================ */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 :root {
-  /* --- Core palette --- */
-  --navy-950: #0d1626;
-  --navy-900: #131f35;
-  --navy-800: #1a2942;
-  --navy-700: #24374f;
-  --navy-600: #3a5170;
+  /* --- Institutional Deep Navy Palette --- */
+  --navy-950: #050e1d;
+  --navy-900: #08162b;
+  --navy-850: #0a1c36;
+  --navy-800: #0f2747;
+  --navy-750: #153258;
+  --navy-700: #1c3e6b;
+  --navy-600: #2a5288;
+  --navy-500: #3b6ba8;
 
-  --slate-50: #f4f7f7;
-  --slate-100: #eef1f5;
-  --slate-200: #dce5e5;
-  --slate-300: #c7ccd6;
-  --slate-400: #9aa3b2;
-  --slate-500: #6b7486;
-  --slate-600: #4d5567;
-  --slate-700: #363c4a;
-  --slate-900: #172328;
+  /* --- NIRIKSHAN Cyan / Teal Accent Palette --- */
+  --teal-600: #00736e;
+  --teal-500: #008782;
+  --teal-400: #0d9488;
+  --teal-300: #14b8a6;
+  --teal-200: #5eead4;
+  --teal-100: #ccfbf1;
+  --teal-50:  #f0fdfa;
+  --teal-glow: rgba(20, 184, 166, 0.25);
+  --teal-active-nav: #0c3645;
+  --teal-border-nav: #14b8a6;
 
-  --white: #ffffff;
+  /* --- Government Clean Surfaces & Neutrals --- */
+  --slate-900: #0f172a;
+  --slate-800: #1e293b;
+  --slate-700: #334155;
+  --slate-600: #475569;
+  --slate-500: #64748b;
+  --slate-400: #94a3b8;
+  --slate-300: #cbd5e1;
+  --slate-200: #e2e8f0;
+  --slate-150: #e8eef5;
+  --slate-100: #f1f5f9;
+  --slate-50:  #f8fafc;
+  --white:     #ffffff;
 
-  --amber-500: #bf741d;
-  --amber-100: #fbefd9;
-  --teal-500: #197a78;
-  --teal-100: #e1f1ef;
+  /* --- Semantic Risk Status Colors --- */
+  --risk-low: #059669;
+  --risk-low-bg: #ecfdf5;
+  --risk-low-border: #a7f3d0;
 
-  /* --- Risk semantics (used consistently everywhere risk appears) --- */
-  --risk-low: #2f7a4f;
-  --risk-low-bg: #e7f2ec;
-  --risk-medium: #a97418;
-  --risk-medium-bg: #f7eedd;
-  --risk-high: #b45a1f;
-  --risk-high-bg: #f8e9dc;
-  --risk-critical: #b23a3a;
-  --risk-critical-bg: #f8e2e2;
+  --risk-medium: #d97706;
+  --risk-medium-bg: #fffbeb;
+  --risk-medium-border: #fde68a;
 
-  --positive: #2f7a4f;
-  --negative: #b23a3a;
+  --risk-high: #dc2626;
+  --risk-high-bg: #fef2f2;
+  --risk-high-border: #fecaca;
 
-  /* --- Surfaces & text --- */
-  --bg-app: #f4f7f7;
-  --bg-panel: var(--white);
-  --border-default: #dce5e5;
-  --text-primary: var(--slate-900);
-  --text-secondary: var(--slate-500);
-  --text-inverse: var(--slate-50);
+  --risk-critical: #991b1b;
+  --risk-critical-bg: #fef2f2;
+  --risk-critical-border: #fca5a5;
 
-  /* --- Type --- */
-  --font-ui: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  --positive: #059669;
+  --warning: #d97706;
+  --critical: #dc2626;
 
-  /* --- Shape & rhythm --- */
+  /* --- Application Surfaces & Typography --- */
+  --bg-app: #f4f6fa;
+  --bg-sidebar: #061325;
+  --bg-card: #ffffff;
+  --border-card: #e2e8f0;
+  --border-subtle: #edf2f7;
+
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --text-inverse: #f8fafc;
+  --text-inverse-muted: #94a3b8;
+
+  /* --- Typography --- */
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', monospace;
+
+  /* --- Dimensions & Spacing --- */
+  --sidebar-width: 250px;
+  --header-height: 72px;
+  --radius-xs: 4px;
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
 
-  --sidebar-width: 248px;
+  /* --- Restrained Institutional Shadows --- */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --shadow-hover: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
 }
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html,
 body {
-  padding: 0;
-  margin: 0;
+  width: 100%;
+  min-height: 100vh;
 }
 
 body {
   font-family: var(--font-ui);
-  background: var(--bg-app);
+  background-color: var(--bg-app);
   color: var(--text-primary);
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-button,
-input,
-select,
-textarea {
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease,
-    color 0.15s ease, transform 0.15s ease;
-}
-
-h1,
-h2,
-h3,
-h4 {
+/* Typography elements */
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-ui);
-  margin: 0;
-  font-weight: 600;
-  letter-spacing: -0.01em;
   color: var(--text-primary);
-}
-
-p {
-  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
 }
 
 a {
@@ -121,25 +139,15 @@ a {
 }
 
 button {
-  font-family: inherit;
-  font-size: inherit;
+  font-family: var(--font-ui);
   cursor: pointer;
+  border: none;
+  background: none;
 }
 
-input,
-select,
-textarea {
-  font-family: inherit;
-  font-size: inherit;
-}
-
-::selection {
-  background: var(--amber-100);
-}
-
-:focus-visible {
-  outline: 3px solid rgba(25, 122, 120, 0.35);
-  outline-offset: 2px;
+input, select, textarea {
+  font-family: var(--font-ui);
+  font-size: 14px;
 }
 
 .mono {
@@ -147,20 +155,137 @@ textarea {
   font-variant-numeric: tabular-nums;
 }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
+/* Accessibility Focus */
+:focus-visible {
+  outline: 2px solid var(--teal-400);
+  outline-offset: 2px;
 }
 
+/* ============================================================
+   NIRIKSHAN ANIMATIONS
+   ============================================================ */
+
+/* 1. Login Wordmark Progressive Left-to-Right Reveal */
+@keyframes nirikshanLetterReveal {
+  0% {
+    max-width: 0ch;
+    opacity: 0.2;
+  }
+  30% {
+    max-width: 4ch;
+    opacity: 0.8;
+  }
+  70% {
+    max-width: 7ch;
+    opacity: 0.95;
+  }
+  100% {
+    max-width: 12ch;
+    opacity: 1;
+  }
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes subtleNodePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.25;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.65;
+  }
+}
+
+@keyframes telemetryArcFade {
+  0% {
+    stroke-dashoffset: 200;
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.35;
+  }
+}
+
+.pulse-node {
+  transform-origin: center;
+  animation: subtleNodePulse 3.5s ease-in-out infinite;
+}
+
+.telemetry-arc {
+  stroke-dasharray: 200;
+  animation: telemetryArcFade 4s ease-out forwards;
+}
+
+
+/* 2. Sidebar NIRIKSHAN Left-to-Right Subtle Shine */
+@keyframes sidebarLogoShine {
+  0% {
+    background-position: -150% 0;
+  }
+  20% {
+    background-position: 250% 0;
+  }
+  100% {
+    background-position: 250% 0;
+  }
+}
+
+.sidebar-shining-brand {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 21px;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.sidebar-shining-brand .brand-nirik {
+  color: #ffffff;
+}
+
+.sidebar-shining-brand .brand-shan {
+  color: #14b8a6;
+}
+
+.sidebar-shining-brand::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 150% 100%;
+  background-repeat: no-repeat;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  animation: sidebarLogoShine 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

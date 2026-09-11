@@ -441,3 +441,135 @@ class TestFastAPIEndpoints:
         body = res.json()
         assert body["success"] is True
         assert "matches" in body["data"]
+
+    def test_ingest_endpoint_rejects_empty_csv(self, client):
+        res = client.post("/internal/ml/ingest", content="")
+        assert res.status_code == 400
+        assert "detail" in res.json()
+
+    def test_ingest_endpoint_rejects_invalid_csv(self, client):
+        res = client.post("/internal/ml/ingest", content="just,some,random,columns\n1,2,3,4\n")
+        assert res.status_code == 400
+        assert "workId" in res.json().get("detail", "")
+
+
+# =====================================================================
+# 9. CSV Merge & Batch Score Callability Tests
+# =====================================================================
+
+class TestCsvMergeAndBatchScore:
+
+    def test_csv_merge_upsert(self, tmp_path):
+        from ml.app.csv_merge import merge_unified_works_csv
+
+        existing_file = tmp_path / "existing.csv"
+        initial_df = pd.DataFrame([
+            {"workId": "101", "workDescription": "Old Road", "category": "Roads"},
+            {"workId": "102", "workDescription": "Old Bridge", "category": "Bridge"},
+        ])
+        initial_df.to_csv(existing_file, index=False)
+
+        new_csv = "workId,workDescription,category\n102,Renovated Bridge,Bridge\n103,New School,Education\n"
+        result = merge_unified_works_csv(new_csv, existing_path=str(existing_file))
+
+        assert result["updated"] == 1
+        assert result["inserted"] == 1
+        assert result["updatedWorkIds"] == ["102"]
+        assert result["insertedWorkIds"] == ["103"]
+        assert result["total"] == 3
+
+        merged_df = pd.read_csv(existing_file)
+        assert len(merged_df) == 3
+        row_102 = merged_df[merged_df["workId"] == 102].iloc[0]
+        assert row_102["workDescription"] == "Renovated Bridge"
+        assert 103 in merged_df["workId"].values
+
+    def test_batch_scoring_callable(self):
+        from ml.app.batch_score import run_batch_scoring
+        assert callable(run_batch_scoring)
+
+
+# =====================================================================
+# 10. Peer Stats & Incremental Pipeline Tests
+# =====================================================================
+
+class TestIncrementalPipeline:
+
+    def test_save_and_engineer_features_incremental(self, tmp_path):
+        from ml.app.feature_engineering import save_peer_stats, engineer_features_incremental
+        from ml.app.services.timeline_anomaly import TimelineAnomalyDetector
+
+        stats_path = str(tmp_path / "peer_stats.json")
+
+        # Population training data
+        pop_df = pd.DataFrame([
+            {
+                "workId": "p1", "state": "MAHARASHTRA", "workDescription": "Bituminous road repair",
+                "recommendedAmount": 200000.0, "implementationDays": 180, "daysSinceRecommendation": 190,
+                "workStatus": "COMPLETED", "paymentCount": 2, "totalExpenditure": 190000.0
+            },
+            {
+                "workId": "p2", "state": "MAHARASHTRA", "workDescription": "Asphalt road construction",
+                "recommendedAmount": 220000.0, "implementationDays": 200, "daysSinceRecommendation": 210,
+                "workStatus": "COMPLETED", "paymentCount": 3, "totalExpenditure": 210000.0
+            },
+            {
+                "workId": "p3", "state": "MAHARASHTRA", "workDescription": "Primary Health Clinic building",
+                "recommendedAmount": 500000.0, "implementationDays": 300, "daysSinceRecommendation": 350,
+                "workStatus": "IN_PROGRESS", "paymentCount": 1, "totalExpenditure": 100000.0
+            },
+        ])
+
+        save_peer_stats(pop_df, stats_path)
+        assert os.path.exists(stats_path)
+
+        with open(stats_path, "r", encoding="utf-8") as f:
+            stats = json.load(f)
+
+        assert "peer_cost_stats" in stats
+        assert "peer_duration" in stats
+        assert "global_stats" in stats
+        assert "state_categories" in stats
+        assert "MAHARASHTRA::Roads" in stats["peer_cost_stats"]
+        assert stats["peer_cost_stats"]["MAHARASHTRA::Roads"]["peerMedianCost"] == 210000.0
+
+        # Incremental row
+        inc_df = pd.DataFrame([
+            {
+                "workId": "new-1", "state": "MAHARASHTRA", "workDescription": "CC Road in ward 5",
+                "recommendedAmount": 210000.0, "implementationDays": 190, "daysSinceRecommendation": 200,
+                "workStatus": "COMPLETED", "paymentCount": 1, "totalExpenditure": 150000.0
+            },
+            {
+                "workId": "new-2", "state": "UNKNOWN_STATE", "workDescription": "Mystery works",
+                "recommendedAmount": 100000.0, "implementationDays": 100, "daysSinceRecommendation": 120,
+                "workStatus": "IN_PROGRESS", "paymentCount": 0, "totalExpenditure": 0.0
+            }
+        ])
+
+        result_df = engineer_features_incremental(inc_df, stats_path)
+        assert len(result_df) == 2
+        assert result_df.iloc[0]["subCategory"] == "Roads"
+        assert result_df.iloc[0]["peerMedianCost"] == 210000.0
+        assert abs(result_df.iloc[0]["costZScore"]) < 0.001  # exactly on mean
+
+        # Fallback for unknown state
+        assert result_df.iloc[1]["peerMedianCost"] == stats["global_stats"]["global_median_cost"]
+
+        # Timeline detector load_stats
+        t_detector = TimelineAnomalyDetector()
+        assert not t_detector._trained
+        t_detector.load_stats(stats)
+        assert t_detector._trained
+        score = t_detector.predict(result_df.iloc[0].to_dict())
+        assert 0.0 <= score <= 1.0
+
+    def test_refresh_endpoint(self):
+        client = TestClient(app)
+        res = client.post("/internal/ml/refresh")
+        assert res.status_code == 200
+        data = res.json()
+        assert data["success"] is True
+        assert data["action"] == "FULL_REFRESH"
+        assert "jobId" in data
+

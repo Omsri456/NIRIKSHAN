@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { WorkModel } from '../models/Work';
 import { RiskAssessmentModel } from '../models/RiskAssessment';
+import { evaluateAndRecordEscalation } from './alertEngine.service';
+
 
 export interface ImportStats {
   processed: number;
@@ -58,6 +60,10 @@ function mapCategoryToSignalType(category: string): string {
   }
 }
 
+export interface ImportMlOptions {
+  targetWorkIds?: Set<string> | string[];
+}
+
 /**
  * Import ML risk scores from JSON file into MongoDB RiskAssessment collection.
  *
@@ -65,9 +71,13 @@ function mapCategoryToSignalType(category: string): string {
  *  - Validates work existence (or checks workIds)
  *  - Supports safe re-running (upserts based on workId + modelVersion)
  *  - Maps ML evidence to RiskAssessment signals schema
+ *  - Evaluates escalation checks strictly for targetWorkIds (if specified) to prevent false alerts
  *  - Provides detailed import statistics
  */
-export async function importMlRiskScores(jsonFilePath?: string): Promise<ImportStats> {
+export async function importMlRiskScores(
+  jsonFilePath?: string,
+  options?: ImportMlOptions
+): Promise<ImportStats> {
   const filePath = jsonFilePath || path.resolve(__dirname, '../../../data/processed/risk_scores.json');
 
   const stats: ImportStats = {
@@ -94,11 +104,22 @@ export async function importMlRiskScores(jsonFilePath?: string): Promise<ImportS
     throw new Error(`Failed to parse risk_scores.json: ${err.message}`);
   }
 
-  // Pre-fetch existing valid workIds from MongoDB to validate works
-  const existingWorks = await WorkModel.find({}, { workId: 1 }).lean();
+  const targetIdSet = options?.targetWorkIds
+    ? (options.targetWorkIds instanceof Set ? options.targetWorkIds : new Set(options.targetWorkIds))
+    : null;
+
+  // Pre-fetch valid workIds from MongoDB to validate works
+  // If targetIdSet is provided, query only those target works instead of all 87k works
+  const workQuery = targetIdSet ? { workId: { $in: Array.from(targetIdSet) } } : {};
+  const existingWorks = await WorkModel.find(workQuery, { workId: 1 }).lean();
   const validWorkIdSet = new Set(existingWorks.map((w) => w.workId));
 
-  for (const report of reports) {
+  // If targeting specific works (e.g. from an admin upload), only process those reports
+  const reportsToProcess = targetIdSet
+    ? reports.filter((r) => targetIdSet.has(String(r.workId).trim()))
+    : reports;
+
+  for (const report of reportsToProcess) {
     stats.processed++;
 
     if (!report.workId || typeof report.overallRiskScore !== 'number') {
@@ -163,12 +184,22 @@ export async function importMlRiskScores(jsonFilePath?: string): Promise<ImportS
     };
 
     try {
+      const shouldEvaluateEscalation = targetIdSet === null || targetIdSet.has(workId);
       // Upsert to prevent duplicates: match on workId + modelVersion
       const existing = await RiskAssessmentModel.findOne({ workId, modelVersion });
       if (existing) {
+        if (shouldEvaluateEscalation) {
+          await evaluateAndRecordEscalation(existing, docData);
+        }
         await RiskAssessmentModel.updateOne({ _id: existing._id }, { $set: docData });
         stats.updated++;
       } else {
+        if (shouldEvaluateEscalation) {
+          const previous = await RiskAssessmentModel.findOne({ workId }).sort({ generatedAt: -1 });
+          if (previous) {
+            await evaluateAndRecordEscalation(previous, docData);
+          }
+        }
         await RiskAssessmentModel.create(docData);
         stats.inserted++;
       }
@@ -180,3 +211,6 @@ export async function importMlRiskScores(jsonFilePath?: string): Promise<ImportS
 
   return stats;
 }
+
+export { upsertWorksFromCsv, upsertWorksFromRecords, WorkImportStats } from './workImport.service';
+

@@ -8,7 +8,7 @@ async function start() {
 
   const PORT = parseInt(env.PORT, 10);
 
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`
     ╔══════════════════════════════════════════╗
     ║   NIRIKSHAN Backend                      ║
@@ -17,6 +17,11 @@ async function start() {
     ╚══════════════════════════════════════════╝
     `);
   });
+
+  // Allow long-running requests (data ingestion pipeline polls up to 10 min)
+  server.keepAliveTimeout = 620_000;   // 10 min 20s
+  server.headersTimeout = 625_000;     // slightly above keepAliveTimeout
+
 }
 
 start().catch((err) => {

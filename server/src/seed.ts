@@ -60,11 +60,11 @@ async function seed() {
   // ── Users ─────────────────────────────────────────────
   const passwordHash = await bcrypt.hash('password123', 10);
   const users = await UserModel.insertMany([
-    { name: 'Ministry Admin', email: 'ministry@nirikshan.gov.in', passwordHash, role: 'MINISTRY', scope: { state: null, district: null, constituency: null } },
-    { name: 'Maharashtra State Authority', email: 'state.mh@nirikshan.gov.in', passwordHash, role: 'STATE_AUTHORITY', scope: { state: 'Maharashtra', district: null, constituency: null } },
-    { name: 'Mumbai District Authority', email: 'district.mumbai@nirikshan.gov.in', passwordHash, role: 'DISTRICT_AUTHORITY', scope: { state: 'Maharashtra', district: 'Mumbai', constituency: null } },
-    { name: 'Shri Example MP', email: 'mp@nirikshan.gov.in', passwordHash, role: 'MP', scope: { state: 'Maharashtra', district: 'Mumbai', constituency: 'Mumbai North' } },
-    { name: 'System Admin', email: 'admin@nirikshan.gov.in', passwordHash, role: 'ADMIN', scope: { state: null, district: null, constituency: null } },
+    { name: 'Ministry Admin', email: 'ministry@nirikshan.gov.in', passwordHash, role: 'MINISTRY', scope: { state: null, district: null, constituency: null }, approvalStatus: 'APPROVED' },
+    { name: 'Maharashtra State Authority', email: 'state.mh@nirikshan.gov.in', passwordHash, role: 'STATE_AUTHORITY', scope: { state: 'Maharashtra', district: null, constituency: null }, approvalStatus: 'APPROVED' },
+    { name: 'Mumbai District Authority', email: 'district.mumbai@nirikshan.gov.in', passwordHash, role: 'DISTRICT_AUTHORITY', scope: { state: 'Maharashtra', district: 'Mumbai', constituency: null }, approvalStatus: 'APPROVED' },
+    { name: 'Shri Example MP', email: 'mp@nirikshan.gov.in', passwordHash, role: 'MP', scope: { state: 'Maharashtra', district: 'Mumbai', constituency: 'Mumbai North' }, approvalStatus: 'APPROVED' },
+    { name: 'System Admin', email: 'admin@nirikshan.gov.in', passwordHash, role: 'ADMIN', scope: { state: null, district: null, constituency: null }, approvalStatus: 'APPROVED' },
   ]);
   console.log(`✅ Created ${users.length} users (password: password123)\n`);
 

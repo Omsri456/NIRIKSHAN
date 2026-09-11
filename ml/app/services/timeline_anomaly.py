@@ -39,6 +39,23 @@ class TimelineAnomalyDetector:
         self._trained = False
         self._global_median_duration = None
         self._global_std_duration = None
+        self._active_median = None
+        self._active_p90 = None
+
+    def load_stats(self, stats_dict: dict):
+        """
+        Set global timeline statistics from cached peer stats dict.
+        Enables scoring without retraining or needing the full dataset in memory.
+        """
+        if "global_stats" in stats_dict:
+            stats_dict = stats_dict["global_stats"]
+
+        self._global_median_duration = float(stats_dict.get("global_median_duration", 300.0))
+        self._global_std_duration = float(stats_dict.get("global_std_duration", 150.0))
+        self._active_median = float(stats_dict.get("active_median_days", stats_dict.get("active_median", 200.0)))
+        self._active_p90 = float(stats_dict.get("active_p90_days", stats_dict.get("active_p90", 500.0)))
+        self._trained = True
+        print(f"  [Timeline] Stats loaded from cache. Global median: {self._global_median_duration:.0f}d, Active median: {self._active_median:.0f}d")
 
     def train(self, df: pd.DataFrame):
         """

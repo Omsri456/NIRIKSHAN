@@ -15,46 +15,46 @@ const router = Router();
 // POST /api/investigations
 router.post(
   '/',
-  validate(createInvestigationSchema),
   authenticate,
+  validate(createInvestigationSchema),
   investigationController.create
 );
 
 // GET /api/investigations
 router.get(
   '/',
-  validate(listInvestigationsSchema),
   authenticate,
+  validate(listInvestigationsSchema),
   investigationController.list
 );
 
 // GET /api/investigations/:id
 router.get(
   '/:id',
-  validate(investigationIdSchema),
   authenticate,
+  validate(investigationIdSchema),
   investigationController.get
 );
 
 // PATCH /api/investigations/:id
 router.patch(
   '/:id',
+  authenticate,
   validate({
     params: investigationIdSchema.params,
     body: updateInvestigationSchema.body,
   }),
-  authenticate,
   investigationController.update
 );
 
 // POST /api/investigations/:id/notes
 router.post(
   '/:id/notes',
+  authenticate,
   validate({
     params: investigationIdSchema.params,
     body: addNoteSchema.body,
   }),
-  authenticate,
   investigationController.addNote
 );
 

@@ -16,6 +16,7 @@ import pandas as pd
 import numpy as np
 import re
 import os
+import json
 
 
 # ── Sub-category Classification ────────────────────────────────────────
@@ -179,6 +180,245 @@ def save_features(df: pd.DataFrame, output_path: str):
     """Save the feature-enriched DataFrame to CSV."""
     df.to_csv(output_path, index=False, encoding='utf-8')
     print(f"  [FE] Saved to {output_path}")
+
+
+def save_peer_stats(df: pd.DataFrame, path: str):
+    """
+    Extract peer statistics and global scalars from the full dataset,
+    and persist them to a JSON file (peer_stats.json) for incremental scoring.
+
+    Extracted artifacts:
+      1. peer_cost_stats: state x subCategory -> median, mean, std, count (recommendedAmount)
+      2. peer_duration: state x subCategory -> median, mean, std (implementationDays of completed works)
+      3. global scalars: global_std_cost, global_median_cost, global_mean_cost,
+                         global_median_duration, global_mean_duration, global_std_duration,
+                         active_median_days, active_p90_days
+      4. state_categories and sub_categories for consistent categorical encoding
+    """
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+    df = df.copy()
+
+    # Ensure subCategory is present
+    if 'subCategory' not in df.columns and 'workDescription' in df.columns:
+        df['subCategory'] = df['workDescription'].apply(classify_subcategory)
+    elif 'subCategory' not in df.columns:
+        df['subCategory'] = 'Other'
+
+    # Numeric conversion
+    for col in ['recommendedAmount', 'implementationDays', 'daysSinceRecommendation']:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    # 1. Global cost scalars
+    valid_amounts = df['recommendedAmount'].dropna() if 'recommendedAmount' in df.columns else pd.Series(dtype=float)
+    global_std_cost = float(valid_amounts.std()) if len(valid_amounts) > 1 else 100000.0
+    global_median_cost = float(valid_amounts.median()) if len(valid_amounts) > 0 else 250000.0
+    global_mean_cost = float(valid_amounts.mean()) if len(valid_amounts) > 0 else 300000.0
+
+    # 2. Peer cost stats
+    peer_cost_stats = (
+        df.groupby(['state', 'subCategory'])['recommendedAmount']
+        .agg(peerMedianCost='median', peerMeanCost='mean', peerStdCost='std', peerCount='count')
+        .reset_index()
+    )
+    peer_cost_stats['peerStdCost'] = peer_cost_stats['peerStdCost'].fillna(global_std_cost)
+    peer_cost_stats.loc[peer_cost_stats['peerStdCost'] == 0, 'peerStdCost'] = global_std_cost
+
+    cost_dict = {}
+    for _, row in peer_cost_stats.iterrows():
+        key = f"{row['state']}::{row['subCategory']}"
+        cost_dict[key] = {
+            "peerMedianCost": float(row['peerMedianCost']) if pd.notna(row['peerMedianCost']) else global_median_cost,
+            "peerMeanCost": float(row['peerMeanCost']) if pd.notna(row['peerMeanCost']) else global_mean_cost,
+            "peerStdCost": float(row['peerStdCost']) if pd.notna(row['peerStdCost']) and row['peerStdCost'] > 0 else global_std_cost,
+            "peerCount": int(row['peerCount']) if pd.notna(row['peerCount']) else 0,
+        }
+
+    # 3. Duration stats (completed works)
+    completed_mask = df['workStatus'] == 'COMPLETED'
+    if completed_mask.any() and 'implementationDays' in df.columns:
+        completed_df = df[completed_mask]
+        valid_durations = completed_df['implementationDays'].dropna()
+        global_median_duration = float(valid_durations.median()) if len(valid_durations) > 0 else 300.0
+        global_mean_duration = float(valid_durations.mean()) if len(valid_durations) > 0 else 300.0
+        global_std_duration = float(valid_durations.std()) if len(valid_durations) > 1 else 150.0
+
+        peer_duration = (
+            completed_df.groupby(['state', 'subCategory'])['implementationDays']
+            .agg(peerMedianDuration='median', peerMeanDuration='mean', peerStdDuration='std')
+            .reset_index()
+        )
+        peer_duration['peerStdDuration'] = peer_duration['peerStdDuration'].fillna(global_std_duration)
+        peer_duration.loc[peer_duration['peerStdDuration'] == 0, 'peerStdDuration'] = global_std_duration
+    else:
+        peer_duration = pd.DataFrame(columns=['state', 'subCategory', 'peerMedianDuration', 'peerMeanDuration', 'peerStdDuration'])
+        global_median_duration = 300.0
+        global_mean_duration = 300.0
+        global_std_duration = 150.0
+
+    dur_dict = {}
+    for _, row in peer_duration.iterrows():
+        key = f"{row['state']}::{row['subCategory']}"
+        dur_dict[key] = {
+            "peerMedianDuration": float(row['peerMedianDuration']) if pd.notna(row['peerMedianDuration']) else global_median_duration,
+            "peerMeanDuration": float(row['peerMeanDuration']) if pd.notna(row['peerMeanDuration']) else global_mean_duration,
+            "peerStdDuration": float(row['peerStdDuration']) if pd.notna(row['peerStdDuration']) and row['peerStdDuration'] > 0 else global_std_duration,
+        }
+
+    # 4. Active works stats (in-progress works)
+    in_prog_mask = df['workStatus'] == 'IN_PROGRESS'
+    if in_prog_mask.any() and 'daysSinceRecommendation' in df.columns:
+        active_days = df.loc[in_prog_mask, 'daysSinceRecommendation'].dropna()
+        active_median_days = float(active_days.median()) if len(active_days) > 0 else 200.0
+        active_p90_days = float(active_days.quantile(0.90)) if len(active_days) > 0 else 500.0
+    else:
+        active_median_days = 200.0
+        active_p90_days = 500.0
+
+    # 5. Categories for consistent encoding in models
+    state_categories = sorted([str(s) for s in df['state'].dropna().unique()]) if 'state' in df.columns else []
+    sub_categories = sorted([str(c) for c in df['subCategory'].dropna().unique()]) if 'subCategory' in df.columns else []
+
+    payload = {
+        "peer_cost_stats": cost_dict,
+        "peer_duration": dur_dict,
+        "global_stats": {
+            "global_std_cost": global_std_cost,
+            "global_median_cost": global_median_cost,
+            "global_mean_cost": global_mean_cost,
+            "global_median_duration": global_median_duration,
+            "global_mean_duration": global_mean_duration,
+            "global_std_duration": global_std_duration,
+            "active_median_days": active_median_days,
+            "active_p90_days": active_p90_days,
+        },
+        "state_categories": state_categories,
+        "sub_categories": sub_categories,
+    }
+
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(payload, f, indent=2, ensure_ascii=False)
+    print(f"  [FE] Persisted peer statistics to {path} ({len(cost_dict)} cost peer groups, {len(dur_dict)} duration peer groups)")
+
+
+def engineer_features_incremental(new_rows_df: pd.DataFrame, peer_stats_path: str | dict) -> pd.DataFrame:
+    """
+    Incrementally engineer features for newly uploaded rows using cached peer statistics.
+    Does NOT recompute group statistics across the whole population.
+
+    Instead:
+      1. Classifies subCategory from description
+      2. Looks up peerMedianCost, peerMeanCost, peerStdCost from cache
+      3. Looks up peerMedianDuration, peerMeanDuration, peerStdDuration from cache
+      4. Falls back to global stats from cache for unseen (state, subCategory) pairs
+      5. Computes costZScore, timelineZScore, delayRatio, and normalized amounts
+      6. Encodes state and subCategory consistently with trained models
+      7. Computes paymentVelocity
+    """
+    if isinstance(peer_stats_path, dict):
+        stats = peer_stats_path
+    else:
+        if not os.path.exists(peer_stats_path):
+            raise FileNotFoundError(f"Peer stats cache not found at: {peer_stats_path}")
+        with open(peer_stats_path, 'r', encoding='utf-8') as f:
+            stats = json.load(f)
+
+    cost_stats = stats.get("peer_cost_stats", {})
+    dur_stats = stats.get("peer_duration", {})
+    global_stats = stats.get("global_stats", {})
+    state_categories = stats.get("state_categories", [])
+    sub_categories = stats.get("sub_categories", [])
+
+    g_median_cost = global_stats.get("global_median_cost", 250000.0)
+    g_mean_cost = global_stats.get("global_mean_cost", 300000.0)
+    g_std_cost = global_stats.get("global_std_cost", 100000.0)
+
+    g_median_dur = global_stats.get("global_median_duration", 300.0)
+    g_mean_dur = global_stats.get("global_mean_duration", 300.0)
+    g_std_dur = global_stats.get("global_std_duration", 150.0)
+
+    df = new_rows_df.copy()
+
+    # 1. Sub-category classification
+    if 'workDescription' in df.columns:
+        df['subCategory'] = df['workDescription'].apply(classify_subcategory)
+    else:
+        df['subCategory'] = 'Other'
+
+    # 2. Numeric conversions
+    num_cols = ['recommendedAmount', 'finalAmount', 'totalExpenditure',
+                'implementationDays', 'daysSinceRecommendation',
+                'sanctionLagDays', 'startLagDays', 'paymentCount',
+                'averagePayment', 'maxPayment', 'uniqueVendorCount',
+                'pendingPaymentCount', 'successPaymentCount',
+                'finalToRecommendedRatio', 'expenditureToFinalRatio']
+    for col in num_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    # 3. Log-transform amounts
+    df['amountLog'] = np.log1p(df['recommendedAmount'].fillna(0))
+
+    # 4. Peer group cost stats lookup
+    keys = df['state'].astype(str) + "::" + df['subCategory'].astype(str)
+    cost_lookups = [cost_stats.get(k, {}) for k in keys]
+
+    df['peerMedianCost'] = [d.get('peerMedianCost', g_median_cost) for d in cost_lookups]
+    df['peerMeanCost'] = [d.get('peerMeanCost', g_mean_cost) for d in cost_lookups]
+    df['peerStdCost'] = [d.get('peerStdCost', g_std_cost) for d in cost_lookups]
+    df['peerCount'] = [d.get('peerCount', 0) for d in cost_lookups]
+
+    df['costZScore'] = np.where(
+        df['peerStdCost'] > 0,
+        (df['recommendedAmount'] - df['peerMeanCost']) / df['peerStdCost'],
+        0.0
+    )
+    df['costZScore'] = df['costZScore'].fillna(0.0)
+
+    # 5. Peer group timeline stats lookup
+    dur_lookups = [dur_stats.get(k, {}) for k in keys]
+
+    df['peerMedianDuration'] = [d.get('peerMedianDuration', g_median_dur) for d in dur_lookups]
+    df['peerMeanDuration'] = [d.get('peerMeanDuration', g_mean_dur) for d in dur_lookups]
+    df['peerStdDuration'] = [d.get('peerStdDuration', g_std_dur) for d in dur_lookups]
+
+    completed_mask = df['workStatus'] == 'COMPLETED'
+    df['delayRatio'] = np.where(
+        (df['peerMedianDuration'].notna()) & (df['peerMedianDuration'] > 0),
+        df['daysSinceRecommendation'] / df['peerMedianDuration'],
+        np.nan
+    )
+    df['timelineZScore'] = np.where(
+        completed_mask & (df['peerStdDuration'].notna()) & (df['peerStdDuration'] > 0),
+        (df['implementationDays'] - df['peerMeanDuration']) / df['peerStdDuration'],
+        np.nan
+    )
+
+    # 6. Categorical encoding
+    if state_categories:
+        state_map = {str(cat): idx for idx, cat in enumerate(state_categories)}
+        df['state_encoded'] = df['state'].astype(str).map(state_map).fillna(0).astype(int)
+    else:
+        df['state_encoded'] = df['state'].astype('category').cat.codes
+
+    if sub_categories:
+        sub_map = {str(cat): idx for idx, cat in enumerate(sub_categories)}
+        df['subCategory_encoded'] = df['subCategory'].astype(str).map(sub_map).fillna(0).astype(int)
+    else:
+        df['subCategory_encoded'] = df['subCategory'].astype('category').cat.codes
+
+    # 7. Payment velocity
+    payment_count = df['paymentCount'].fillna(0) if 'paymentCount' in df.columns else 0
+    days_rec = df['daysSinceRecommendation'].fillna(0) if 'daysSinceRecommendation' in df.columns else 0
+    tot_exp = df['totalExpenditure'].fillna(0) if 'totalExpenditure' in df.columns else 0
+
+    df['paymentVelocity'] = np.where(
+        (payment_count > 0) & (days_rec > 0),
+        tot_exp / days_rec,
+        0.0
+    )
+
+    return df
 
 
 # ── CLI entry point ────────────────────────────────────────────────────

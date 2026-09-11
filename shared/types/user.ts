@@ -26,6 +26,7 @@ export interface User {
   role: UserRole;
   scope: UserScope;
   isActive: boolean;
+  approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: string;
   updatedAt: string;
 }

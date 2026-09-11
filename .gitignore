@@ -18,10 +18,6 @@ __pycache__/
 venv/
 .venv/
 env/
-ml/models/*.pkl
-ml/models/*.joblib
-ml/models/*.npz
-ML_data/
 
 # ========================
 # Environment / Secrets
@@ -56,8 +52,6 @@ mongo-data/
 # ========================
 data/raw/*
 !data/raw/.gitkeep
-data/processed/*
-!data/processed/.gitkeep
 
 # ========================
 # Logs
@@ -71,3 +65,10 @@ logs/
 coverage/
 .nyc_output/
 .pytest_cache/
+
+# Large binaries / Archives
+*.zip
+*.npz
+
+# Large recommendation dataset
+ML_data/mplads_recommended_works_2026-09-04.csv

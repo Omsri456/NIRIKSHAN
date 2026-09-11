@@ -11,11 +11,15 @@
   },
   "dependencies": {
     "@nirikshan/shared": "*",
+    "@types/d3-geo": "^3.1.1",
+    "@types/topojson-client": "^3.1.5",
     "axios": "^1.7.9",
+    "d3-geo": "^3.1.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^6.28.1",
-    "recharts": "^2.15.0"
+    "recharts": "^2.15.0",
+    "topojson-client": "^3.1.0"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

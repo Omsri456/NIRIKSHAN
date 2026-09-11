@@ -18,6 +18,10 @@ export interface RegisterPayload {
   };
 }
 
+export interface RegisterResponse {
+  message: string;
+}
+
 export async function login(email: string, password: string): Promise<LoginResponse> {
   const { data } = await apiClient.post<ApiResponse<LoginResponse>>('/auth/login', {
     email,
@@ -26,8 +30,8 @@ export async function login(email: string, password: string): Promise<LoginRespo
   return data.data;
 }
 
-export async function register(payload: RegisterPayload): Promise<LoginResponse> {
-  const { data } = await apiClient.post<ApiResponse<LoginResponse>>('/auth/register', payload);
+export async function register(payload: RegisterPayload): Promise<RegisterResponse> {
+  const { data } = await apiClient.post<ApiResponse<RegisterResponse>>('/auth/register', payload);
   return data.data;
 }
 
@@ -39,3 +43,9 @@ export async function fetchMe(): Promise<SafeUser> {
 export async function logout(): Promise<void> {
   await apiClient.post('/auth/logout');
 }
+
+export async function fetchUsers(): Promise<SafeUser[]> {
+  const { data } = await apiClient.get<ApiResponse<SafeUser[]>>('/auth/users');
+  return data.data;
+}
+

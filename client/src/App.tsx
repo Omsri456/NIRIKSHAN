@@ -8,8 +8,13 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { WorksListPage } from '@/pages/WorksListPage';
 import { WorkDetailPage } from '@/pages/WorkDetailPage';
 import { HighRiskPage } from '@/pages/HighRiskPage';
+import { EarlyWarningsPage } from '@/pages/EarlyWarningsPage';
 import { InvestigationsListPage } from '@/pages/InvestigationsListPage';
 import { InvestigationDetailPage } from '@/pages/InvestigationDetailPage';
+import { AdminDataImportPage } from '@/pages/AdminDataImportPage';
+import { AdminUserApprovalPage } from '@/pages/AdminUserApprovalPage';
+import { RecommendWorkPage } from '@/pages/RecommendWorkPage';
+import { RecommendationsReviewPage } from '@/pages/RecommendationsReviewPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import './App.css';
 
@@ -32,8 +37,13 @@ function App() {
             <Route path="works" element={<WorksListPage />} />
             <Route path="works/:workId" element={<WorkDetailPage />} />
             <Route path="high-risk" element={<HighRiskPage />} />
+            <Route path="early-warnings" element={<EarlyWarningsPage />} />
             <Route path="investigations" element={<InvestigationsListPage />} />
             <Route path="investigations/:id" element={<InvestigationDetailPage />} />
+            <Route path="recommend-work" element={<RecommendWorkPage />} />
+            <Route path="recommendations-review" element={<RecommendationsReviewPage />} />
+            <Route path="admin/data-imports" element={<AdminDataImportPage />} />
+            <Route path="admin/user-approval" element={<AdminUserApprovalPage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
@@ -41,5 +51,6 @@ function App() {
     </BrowserRouter>
   );
 }
+
 
 export default App;

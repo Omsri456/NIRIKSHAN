@@ -6,8 +6,12 @@ import { z } from 'zod';
  * validated. ETL is not implemented in this phase.
  */
 export const createDataImportSchema = {
-  body: z.object({
-    filename: z.string().min(1).max(255).optional(),
-    dataset: z.string().min(1).max(100).optional(),
-  }),
+  body: z.union([
+    z.string(),
+    z.object({
+      filename: z.string().min(1).max(255).optional(),
+      dataset: z.string().min(1).max(100).optional(),
+      csvContent: z.string().optional(),
+    }),
+  ]),
 };

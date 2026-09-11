@@ -10,6 +10,8 @@ import worksRoutes from './routes/works.routes';
 import riskRoutes from './routes/risk.routes';
 import investigationsRoutes from './routes/investigations.routes';
 import dataImportsRoutes from './routes/dataImports.routes';
+import userRoutes from './routes/user.routes';
+import workRecommendationRoutes from './routes/workRecommendation.routes';
 
 // Middleware imports
 import { errorHandler } from './middleware/errorHandler';
@@ -20,7 +22,8 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.use(morgan('dev'));
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.text({ type: ['text/csv', 'text/plain'], limit: '50mb' }));
 
 // ── Health Check ─────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
@@ -34,6 +37,8 @@ app.use('/api/works', worksRoutes);
 app.use('/api/risk', riskRoutes);
 app.use('/api/investigations', investigationsRoutes);
 app.use('/api/data-imports', dataImportsRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/recommendations', workRecommendationRoutes);
 
 // ── 404 Handler ──────────────────────────────────────────
 app.use((_req, res) => {
