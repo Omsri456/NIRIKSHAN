@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { extractErrorMessage } from '@/api/client';
+import { IndiaMonitoringVisualization, NirikshanEyeIcon, EmblemOfIndia, LoginHeroBrandLogo } from '@/components/ui/BrandAssets';
 
 export function RegisterPage() {
   const { register, isAuthenticated } = useAuth();
@@ -42,60 +43,151 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="login-page">
-      <aside className="login-aside">
-        <div className="login-mark">NIRIKSHAN</div>
-        <div className="login-tagline">
-          <h2>Register your account for MPLADS Risk Intelligence.</h2>
-          <p>
-            Gain role-scoped access to screening models, risk distribution metrics, and evidence-backed audit trails.
+    <div className="gov-login-container">
+      {/* Left Institutional Technology Panel */}
+      <aside className="gov-login-left">
+        <div className="login-left-bg-telemetry">
+          <IndiaMonitoringVisualization />
+        </div>
+
+
+        <div className="login-header-meta">
+          <div>
+            <div className="login-gov-heading">Government of India</div>
+            <div className="login-gov-subheading">MPLADS Monitoring Platform</div>
+            <div className="login-teal-line" />
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div className="login-system-online">
+              <span className="login-system-online-dot" />
+              SYSTEM ONLINE
+            </div>
+            <div className="login-tags-row">Account Registration &nbsp;|&nbsp; Role-Scoped Access</div>
+          </div>
+        </div>
+
+        <div className="login-hero-brand-section">
+          <div className="login-brand-title">
+            <LoginHeroBrandLogo />
+          </div>
+          <h2 className="login-tagline-heading">Register for MPLADS Risk Intelligence Access.</h2>
+          <p className="login-description">
+            Enroll your authorized administrative profile to access role-scoped risk intelligence,
+            automated anomaly detection models, and evidence-backed audit workflows.
           </p>
         </div>
-        <div className="login-flow">
-          <span>Register</span>
-          <span>Role Scope</span>
-          <span>Dashboard</span>
-          <span>Oversight</span>
+
+        <div>
+          <div style={{ fontSize: '11px', fontWeight: 600, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '8px' }}>
+            Authorization Stages
+          </div>
+          <div className="login-process-flow">
+            <div className="process-step">
+              <div className="process-step-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </div>
+              <div className="process-step-content">
+                <span className="process-step-title">IDENTITY</span>
+                <span className="process-step-desc">Official Name & Email</span>
+              </div>
+            </div>
+
+            <div className="process-step-arrow">→</div>
+
+            <div className="process-step">
+              <div className="process-step-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                  <polyline points="2 17 12 22 22 17" />
+                  <polyline points="2 12 12 17 22 12" />
+                </svg>
+              </div>
+              <div className="process-step-content">
+                <span className="process-step-title">ROLE SCOPE</span>
+                <span className="process-step-desc">District / State / Ministry</span>
+              </div>
+            </div>
+
+            <div className="process-step-arrow">→</div>
+
+            <div className="process-step">
+              <div className="process-step-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </div>
+              <div className="process-step-content">
+                <span className="process-step-title">ACCESS</span>
+                <span className="process-step-desc">Secure Dashboard</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="login-left-footer">
+          <span>Transparent use of public funds. A more accountable India.</span>
+          <span style={{ fontWeight: 600 }}>NIRIKSHAN v1.0</span>
         </div>
       </aside>
-      <div className="login-form-side">
-        <div className="login-form-card">
-          <h1>Create Account</h1>
-          <p className="subtitle">Sign up for role-based monitoring access.</p>
 
-          {error && <div className="login-error">{error}</div>}
+      {/* Right Registration Card */}
+      <main className="gov-login-right" style={{ overflowY: 'auto', padding: '30px 20px' }}>
+        <div style={{ position: 'absolute', top: 20, right: 20, opacity: 0.1, pointerEvents: 'none' }}>
+          <EmblemOfIndia />
+        </div>
 
-          <form className="login-form" onSubmit={handleSubmit}>
-            <div className="field">
-              <label htmlFor="name">Full Name</label>
+        <div className="login-card" style={{ maxWidth: '480px', margin: 'auto' }}>
+          <div className="login-card-brand-header" style={{ marginBottom: '16px' }}>
+            <NirikshanEyeIcon className="login-card-eye-icon" style={{ width: '40px', height: '40px' }} />
+            <div className="login-card-app-name">NIRIKSHAN</div>
+            <div className="login-card-app-sub">MPLADS MONITORING PLATFORM</div>
+            <h1 className="login-welcome-title" style={{ fontSize: '19px', marginTop: '8px' }}>Register User</h1>
+            <p className="login-welcome-sub" style={{ marginBottom: '16px' }}>Create your authorized administrative account.</p>
+          </div>
+
+          {error && <div className="form-error-banner">{error}</div>}
+
+          <form onSubmit={handleSubmit}>
+            <div className="gov-form-field">
+              <label htmlFor="reg-name">Full Name</label>
               <input
-                id="name"
+                id="reg-name"
                 type="text"
+                className="gov-text-input"
+                style={{ paddingLeft: '14px' }}
+                placeholder="e.g. Officer Rajesh Kumar"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Officer Rajesh Kumar"
                 required
               />
             </div>
 
-            <div className="field">
-              <label htmlFor="email">Official Email</label>
+            <div className="gov-form-field">
+              <label htmlFor="reg-email">Official Email</label>
               <input
-                id="email"
+                id="reg-email"
                 type="email"
+                className="gov-text-input"
+                style={{ paddingLeft: '14px' }}
+                placeholder="name@gov.in"
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@gov.in"
                 required
               />
             </div>
 
-            <div className="field">
-              <label htmlFor="password">Password (min 6 chars)</label>
+            <div className="gov-form-field">
+              <label htmlFor="reg-password">Password (min 6 characters)</label>
               <input
-                id="password"
+                id="reg-password"
                 type="password"
+                className="gov-text-input"
+                style={{ paddingLeft: '14px' }}
+                placeholder="••••••••"
                 autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -104,13 +196,14 @@ export function RegisterPage() {
               />
             </div>
 
-            <div className="field">
-              <label htmlFor="role">Authority Role</label>
+            <div className="gov-form-field">
+              <label htmlFor="reg-role">Authority Role</label>
               <select
-                id="role"
+                id="reg-role"
+                className="gov-text-input"
+                style={{ paddingLeft: '14px' }}
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="select-input"
               >
                 <option value="DISTRICT_AUTHORITY">District Authority</option>
                 <option value="STATE_AUTHORITY">State Authority</option>
@@ -120,16 +213,17 @@ export function RegisterPage() {
               </select>
             </div>
 
-            <div className="field-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div className="field">
-                <label htmlFor="state">State / UT (Scope)</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="gov-form-field">
+                <label htmlFor="reg-state">State / UT (Scope)</label>
                 <select
-                  id="state"
+                  id="reg-state"
+                  className="gov-text-input"
+                  style={{ paddingLeft: '12px' }}
                   value={state}
                   onChange={(e) => setState(e.target.value)}
-                  className="select-input"
                 >
-                  <option value="">All States (Nationwide Scope)</option>
+                  <option value="">National Scope</option>
                   <option value="Assam">Assam</option>
                   <option value="Bihar">Bihar</option>
                   <option value="Gujarat">Gujarat</option>
@@ -146,31 +240,33 @@ export function RegisterPage() {
                   <option value="Delhi">Delhi</option>
                 </select>
               </div>
-              <div className="field">
-                <label htmlFor="district">District (Optional Scope)</label>
+
+              <div className="gov-form-field">
+                <label htmlFor="reg-district">District (Optional)</label>
                 <input
-                  id="district"
+                  id="reg-district"
                   type="text"
+                  className="gov-text-input"
+                  style={{ paddingLeft: '12px' }}
+                  placeholder="e.g. Dahod"
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
-                  placeholder="e.g. Dahod, Mumbai, Lucknow"
                 />
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block" disabled={isSubmitting}>
-              {isSubmitting ? 'Creating account…' : 'Register Account'}
+            <button type="submit" className="btn-gov-primary" style={{ marginTop: '8px' }} disabled={isSubmitting}>
+              <span>{isSubmitting ? 'Registering account…' : 'Create Account'}</span>
             </button>
 
-            <div style={{ marginTop: '16px', textAlign: 'center', fontSize: '14px' }}>
-              <span style={{ color: 'var(--color-text-secondary, #94a3b8)' }}>Already have an account? </span>
-              <Link to="/login" style={{ color: 'var(--color-primary, #3b82f6)', fontWeight: 600, textDecoration: 'none' }}>
-                Sign in
-              </Link>
-            </div>
+            <div className="gov-or-divider">OR</div>
+
+            <Link to="/login" className="btn-gov-secondary">
+              <span>Back to Sign in</span>
+            </Link>
           </form>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

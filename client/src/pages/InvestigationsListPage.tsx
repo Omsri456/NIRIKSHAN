@@ -57,12 +57,10 @@ export function InvestigationsListPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, status]);
 
   useEffect(() => {
     loadPendingCount();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReviewer]);
 
   function updateStatus(value: string) {
@@ -83,58 +81,79 @@ export function InvestigationsListPage() {
     <div>
       <div className="page-header">
         <div>
-          <h2>Investigations</h2>
-          <p className="subtitle">Human review workflow for flagged works.</p>
+          <div className="page-eyebrow">AUDIT & RESOLUTION WORKFLOW</div>
+          <h1 className="page-title">Investigations</h1>
+          <p className="page-subtitle">Human review workflow, case files, and multi-tier evidence validation for flagged works.</p>
         </div>
       </div>
 
-      <div className="filter-bar">
-        <div className="field">
-          <label htmlFor="status">Status</label>
-          <select id="status" value={status} onChange={(e) => updateStatus(e.target.value)}>
-            <option value="">All statuses</option>
-            {INVESTIGATION_STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {humanize(s)}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="table-card">
+        {/* Status Filter Toolbar */}
+        <div className="table-toolbar">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <select
+              className="timeframe-select"
+              value={status}
+              onChange={(e) => updateStatus(e.target.value)}
+            >
+              <option value="">All Statuses</option>
+              {INVESTIGATION_STATUS_OPTIONS.map((s) => (
+                <option key={s} value={s}>
+                  {humanize(s)}
+                </option>
+              ))}
+            </select>
 
-        {isReviewer && (
-          <button
-            type="button"
-            className={`filter-chip ${status === 'PENDING_VERIFICATION' ? 'active' : ''}`}
-            onClick={() =>
-              updateStatus(status === 'PENDING_VERIFICATION' ? '' : 'PENDING_VERIFICATION')
-            }
-            title="Filter by cases pending verification"
-          >
-            <span>Pending Verification</span>
-            {pendingCount !== null && (
-              <span className="filter-chip-count">{pendingCount}</span>
+            {isReviewer && (
+              <button
+                type="button"
+                className="btn-table-tool"
+                style={{
+                  backgroundColor: status === 'PENDING_VERIFICATION' ? '#f0fdfa' : '#ffffff',
+                  borderColor: status === 'PENDING_VERIFICATION' ? '#14b8a6' : '#cbd5e1',
+                  color: status === 'PENDING_VERIFICATION' ? '#0f766e' : '#334155',
+                }}
+                onClick={() =>
+                  updateStatus(status === 'PENDING_VERIFICATION' ? '' : 'PENDING_VERIFICATION')
+                }
+              >
+                <span>Pending Verification</span>
+                {pendingCount !== null && (
+                  <span
+                    style={{
+                      padding: '2px 6px',
+                      borderRadius: '9999px',
+                      backgroundColor: '#0f766e',
+                      color: '#ffffff',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {pendingCount}
+                  </span>
+                )}
+              </button>
             )}
-          </button>
-        )}
-      </div>
+          </div>
+        </div>
 
-      <div className="panel">
         {isLoading && <LoadingState label="Loading investigations…" />}
         {error && !isLoading && <ErrorState message={error} onRetry={load} />}
 
         {result && !isLoading && !error && result.data.length === 0 && (
           <EmptyState
             title="No investigations found"
-            message="Open an investigation from a work's intelligence page to get started."
+            message="Open an investigation from a flagged work's intelligence page to initiate review."
           />
         )}
 
         {result && !isLoading && !error && result.data.length > 0 && (
           <>
-            <div className="table-scroll">
-              <table className="data-table">
+            <div className="data-table-wrap">
+              <table className="gov-data-table">
                 <thead>
                   <tr>
+                    <th style={{ width: '40px' }}>#</th>
                     <th>Work ID</th>
                     <th>Status</th>
                     <th>Priority</th>
@@ -143,33 +162,29 @@ export function InvestigationsListPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {result.data.map((inv) => (
-                    <tr
-                      key={inv._id}
-                      className="clickable"
-                      tabIndex={0}
-                      role="link"
-                      onClick={() => navigate(`/investigations/${inv._id}`)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          navigate(`/investigations/${inv._id}`);
-                        }
-                      }}
-                    >
-                      <td className="mono cell-primary">{inv.workId}</td>
-                      <td>
-                        <StatusPill status={inv.status} />
-                      </td>
-                      <td>
-                        <RiskBadge level={inv.priority} />
-                      </td>
-                      <td className="cell-secondary">
-                        {inv.finding ? humanize(inv.finding) : 'Pending'}
-                      </td>
-                      <td className="cell-secondary">{formatDate(inv.updatedAt)}</td>
-                    </tr>
-                  ))}
+                  {result.data.map((inv, index) => {
+                    const rowIndex = (page - 1) * result.pagination.limit + index + 1;
+                    return (
+                      <tr
+                        key={inv._id}
+                        className="clickable"
+                        onClick={() => navigate(`/investigations/${inv._id}`)}
+                      >
+                        <td className="cell-index">{rowIndex}.</td>
+                        <td className="cell-work-id">{inv.workId}</td>
+                        <td>
+                          <StatusPill status={inv.status} />
+                        </td>
+                        <td>
+                          <RiskBadge level={inv.priority} />
+                        </td>
+                        <td style={{ color: '#475569', fontWeight: 500 }}>
+                          {inv.finding ? humanize(inv.finding) : 'Pending Review'}
+                        </td>
+                        <td style={{ color: '#64748b' }}>{formatDate(inv.updatedAt)}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

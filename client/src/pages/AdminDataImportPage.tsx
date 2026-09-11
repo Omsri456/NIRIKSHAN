@@ -41,8 +41,9 @@ export function AdminDataImportPage() {
       <div>
         <div className="page-header">
           <div>
-            <h2>Access Denied</h2>
-            <p className="subtitle">Only users with the ADMIN role can access Data Import.</p>
+            <div className="page-eyebrow">SECURITY RESTRICTION</div>
+            <h1 className="page-title">Access Denied</h1>
+            <p className="page-subtitle">Only users with the System Administrator (ADMIN) role can access Data Import & ML Pipelines.</p>
           </div>
         </div>
       </div>
@@ -90,21 +91,21 @@ export function AdminDataImportPage() {
     <div>
       <div className="page-header">
         <div>
-          <h2>Data Ingestion & Pipeline</h2>
-          <p className="subtitle">
-            Upload new or updated MPLADS works to merge into unified dataset, retrain anomaly models, and generate fresh risk scores.
+          <div className="page-eyebrow">PIPELINE ADMINISTRATION</div>
+          <h1 className="page-title">Data Ingestion & ML Pipeline</h1>
+          <p className="page-subtitle">
+            Upload new or updated MPLADS works to merge into unified repository, execute batch anomaly models, and generate fresh risk intelligence.
           </p>
         </div>
       </div>
 
       {/* Upload Form Card */}
-      <div className="panel" style={{ marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>
+      <div className="table-card" style={{ padding: '24px', marginBottom: '24px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '6px', color: 'var(--slate-900)' }}>
           Upload Unified Works CSV
-        </h3>
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-          File must follow the <code>unified_works.csv</code> schema (workId, workDescription, category, mpName, state, district, recommendedAmount, finalAmount, workStatus, etc.).
-          Existing workIds will have their fields updated; new workIds will be appended and fully scored.
+        </h2>
+        <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '18px', lineHeight: 1.5 }}>
+          File must follow the <code>unified_works.csv</code> schema. Existing Work IDs will be updated; new records will be appended and scored against the machine learning risk models.
         </p>
 
         <form onSubmit={handleUploadSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -115,27 +116,21 @@ export function AdminDataImportPage() {
               accept=".csv,text/csv"
               onChange={handleFileChange}
               disabled={isUploading}
-              style={{
-                fontSize: '13px',
-                padding: '8px 12px',
-                border: '1px solid var(--border)',
-                borderRadius: '6px',
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-              }}
+              className="table-search-input"
+              style={{ maxWidth: '380px', padding: '6px 12px' }}
             />
             <button
               type="submit"
-              className="btn btn-primary"
+              className="btn-table-tool"
+              style={{ backgroundColor: '#0f766e', color: '#ffffff', borderColor: '#0f766e' }}
               disabled={!selectedFile || isUploading}
-              style={{ minWidth: '160px' }}
             >
-              {isUploading ? 'Running Scoring Pipeline…' : 'Run Ingestion Pipeline'}
+              <span>{isUploading ? 'Running Scoring Pipeline…' : 'Run Ingestion Pipeline'}</span>
             </button>
           </div>
 
           {selectedFile && !isUploading && (
-            <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: '12.5px', color: '#0f766e', fontWeight: 500 }}>
               Selected: <strong>{selectedFile.name}</strong> ({(selectedFile.size / 1024).toFixed(1)} KB)
             </div>
           )}
@@ -144,124 +139,83 @@ export function AdminDataImportPage() {
             <div
               style={{
                 padding: '16px',
-                borderRadius: '6px',
-                background: 'rgba(59, 130, 246, 0.08)',
-                border: '1px solid rgba(59, 130, 246, 0.25)',
-                color: 'var(--text-primary)',
+                borderRadius: '8px',
+                background: '#f0fdfa',
+                border: '1px solid #99f6e4',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                <span className="badge-dot" style={{ background: '#3b82f6', width: '8px', height: '8px', animation: 'pulse 1.5s infinite' }} />
-                <strong>Pipeline Running…</strong>
+                <span className="gov-risk-badge-dot" style={{ background: '#0f766e', width: '8px', height: '8px' }} />
+                <strong style={{ color: '#0f766e' }}>Scoring Pipeline In Progress…</strong>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px' }}>
-                {[
-                  { label: 'Uploading CSV to server', done: true },
-                  { label: 'Merging into unified dataset', done: true },
-                  { label: 'Scoring new/updated works with AI models', done: false },
-                  { label: 'Importing risk scores into database', done: false },
-                ].map((step, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: step.done ? '#10b981' : 'var(--text-secondary)' }}>
-                    <span style={{ fontSize: '14px' }}>{step.done ? '✓' : '⋯'}</span>
-                    <span>{step.label}</span>
-                  </div>
-                ))}
-              </div>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '10px 0 0 0' }}>
-                Scoring new works with pre-trained models. This usually takes 10–30 seconds.
+              <p style={{ fontSize: '12.5px', color: '#64748b', margin: 0 }}>
+                Extracting features and scoring with ML models. This typically completes in 10–20 seconds.
               </p>
             </div>
           )}
 
-          {uploadError && (
-            <div
-              style={{
-                padding: '14px',
-                borderRadius: '6px',
-                background: 'rgba(239, 68, 68, 0.08)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                color: '#ef4444',
-                fontSize: '13px',
-              }}
-            >
-              <strong>Ingestion Failed:</strong> {uploadError}
-            </div>
-          )}
+          {uploadError && <div className="form-error-banner">{uploadError}</div>}
 
           {uploadSuccess && (
             <div
               style={{
                 padding: '16px',
-                borderRadius: '6px',
-                background: 'rgba(16, 185, 129, 0.08)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
+                borderRadius: '8px',
+                background: '#ecfdf5',
+                border: '1px solid #a7f3d0',
                 fontSize: '13px',
-                color: 'var(--text-primary)',
               }}
             >
-              <div style={{ color: '#10b981', fontWeight: 600, marginBottom: '8px' }}>
+              <div style={{ color: '#047857', fontWeight: 700, marginBottom: '10px' }}>
                 ✅ Ingestion & Batch Scoring Completed Successfully!
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginTop: '10px' }}>
-                <div style={{ padding: '8px 12px', background: 'var(--bg-secondary)', borderRadius: '4px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block' }}>Updated Works</span>
-                  <span style={{ fontSize: '16px', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+                <div style={{ padding: '8px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Updated Works</span>
+                  <span className="mono" style={{ fontSize: '16px', fontWeight: 700 }}>
                     {uploadSuccess.stats?.updated ?? 0}
                   </span>
                 </div>
-                <div style={{ padding: '8px 12px', background: 'var(--bg-secondary)', borderRadius: '4px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block' }}>Inserted Works</span>
-                  <span style={{ fontSize: '16px', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                <div style={{ padding: '8px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Inserted Works</span>
+                  <span className="mono" style={{ fontSize: '16px', fontWeight: 700 }}>
                     {uploadSuccess.stats?.inserted ?? 0}
                   </span>
                 </div>
-                <div style={{ padding: '8px 12px', background: 'var(--bg-secondary)', borderRadius: '4px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block' }}>Total Dataset Scored</span>
-                  <span style={{ fontSize: '16px', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                <div style={{ padding: '8px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Total Dataset Scored</span>
+                  <span className="mono" style={{ fontSize: '16px', fontWeight: 700 }}>
                     {uploadSuccess.stats?.totalWorksScored ?? uploadSuccess.totalRecords}
                   </span>
                 </div>
-                <div style={{ padding: '8px 12px', background: 'var(--bg-secondary)', borderRadius: '4px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block' }}>Elapsed Time</span>
-                  <span style={{ fontSize: '16px', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                <div style={{ padding: '8px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Elapsed Time</span>
+                  <span className="mono" style={{ fontSize: '16px', fontWeight: 700 }}>
                     {uploadSuccess.stats?.elapsedSeconds ? `${uploadSuccess.stats.elapsedSeconds}s` : 'N/A'}
                   </span>
                 </div>
               </div>
-
-              {uploadSuccess.stats?.riskDistribution && (
-                <div style={{ marginTop: '12px', fontSize: '12.5px' }}>
-                  <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Updated Risk Distribution: </span>
-                  <span style={{ marginLeft: '6px' }}>
-                    Critical: <strong>{uploadSuccess.stats.riskDistribution.CRITICAL ?? 0}</strong> |{' '}
-                    High: <strong>{uploadSuccess.stats.riskDistribution.HIGH ?? 0}</strong> |{' '}
-                    Medium: <strong>{uploadSuccess.stats.riskDistribution.MEDIUM ?? 0}</strong> |{' '}
-                    Low: <strong>{uploadSuccess.stats.riskDistribution.LOW ?? 0}</strong>
-                  </span>
-                </div>
-              )}
             </div>
           )}
         </form>
       </div>
 
       {/* History Table */}
-      <div className="panel">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <div className="table-card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--border-card)' }}>
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>Import History</h3>
-            <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: 0 }}>
+            <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: 'var(--slate-900)' }}>Pipeline Execution History</h2>
+            <p style={{ fontSize: '12.5px', color: '#64748b', margin: 0 }}>
               Audit log of past data uploads and batch scoring executions.
             </p>
           </div>
           <button
             type="button"
-            className="btn btn-secondary"
+            className="btn-table-tool"
             onClick={loadHistory}
             disabled={isLoadingHistory}
-            style={{ fontSize: '12px', padding: '6px 12px' }}
           >
-            Refresh History
+            <span>Refresh</span>
           </button>
         </div>
 
@@ -276,8 +230,8 @@ export function AdminDataImportPage() {
         )}
 
         {!isLoadingHistory && !historyError && imports.length > 0 && (
-          <div className="table-scroll">
-            <table className="data-table">
+          <div className="data-table-wrap">
+            <table className="gov-data-table">
               <thead>
                 <tr>
                   <th>Status</th>
@@ -294,46 +248,22 @@ export function AdminDataImportPage() {
                 {imports.map((item) => (
                   <tr key={item._id}>
                     <td>
-                      <span
-                        className="status-pill"
-                        style={{
-                          background:
-                            item.status === 'COMPLETED'
-                              ? 'rgba(16, 185, 129, 0.15)'
-                              : item.status === 'PROCESSING'
-                              ? 'rgba(59, 130, 246, 0.15)'
-                              : item.status === 'FAILED'
-                              ? 'rgba(239, 68, 68, 0.15)'
-                              : 'var(--bg-secondary)',
-                          color:
-                            item.status === 'COMPLETED'
-                              ? '#10b981'
-                              : item.status === 'PROCESSING'
-                              ? '#3b82f6'
-                              : item.status === 'FAILED'
-                              ? '#ef4444'
-                              : 'var(--text-secondary)',
-                          border: 'none',
-                          fontWeight: 600,
-                          fontSize: '11px',
-                          padding: '3px 8px',
-                          borderRadius: '12px',
-                        }}
-                      >
+                      <span className={`gov-risk-badge ${item.status === 'COMPLETED' ? 'low' : item.status === 'FAILED' ? 'critical' : 'medium'}`}>
+                        <span className="gov-risk-badge-dot" />
                         {item.status}
                       </span>
                     </td>
-                    <td className="cell-primary font-mono">{item.filename}</td>
+                    <td className="cell-work-id">{item.filename}</td>
                     <td className="mono">{item.stats?.updated ?? '-'}</td>
                     <td className="mono">{item.stats?.inserted ?? '-'}</td>
                     <td className="mono">{item.stats?.totalWorksScored ?? item.totalRecords}</td>
-                    <td className="cell-secondary">
+                    <td style={{ color: '#475569' }}>
                       {item.stats?.elapsedSeconds ? `${item.stats.elapsedSeconds}s` : '-'}
                     </td>
-                    <td className="cell-secondary">
+                    <td style={{ color: '#64748b' }}>
                       {item.importedBy ? `${item.importedBy.name} (${item.importedBy.role})` : 'Admin'}
                     </td>
-                    <td className="cell-secondary">{formatDate(item.startedAt)}</td>
+                    <td style={{ color: '#64748b' }}>{formatDate(item.startedAt)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -68,7 +68,6 @@ export function InvestigationDetailPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   async function handleUpdate(update: investigationsApi.InvestigationUpdate) {
@@ -146,7 +145,7 @@ export function InvestigationDetailPage() {
     }
   }
 
-  if (isLoading) return <LoadingState label="Loading investigation…" />;
+  if (isLoading) return <LoadingState label="Loading investigation dossier…" />;
   if (error && !investigation) return <ErrorState message={error} onRetry={load} />;
   if (!investigation) return null;
 
@@ -154,13 +153,25 @@ export function InvestigationDetailPage() {
     <div>
       <div className="page-header">
         <div>
-          <Link to="/investigations" className="cell-secondary">
+          <Link
+            to="/investigations"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: '#0f766e',
+              fontSize: '13px',
+              fontWeight: 600,
+              marginBottom: '6px',
+            }}
+          >
             ← Back to investigations
           </Link>
-          <h2 style={{ marginTop: 8 }}>Investigation</h2>
-          <p className="subtitle">
-            Work{' '}
-            <Link to={`/works/${investigation.workId}`} className="link-emphasis mono">
+          <div className="page-eyebrow">AUDIT DOSSIER #{investigation._id.slice(-6).toUpperCase()}</div>
+          <h1 className="page-title" style={{ fontSize: '22px' }}>Case Investigation</h1>
+          <p className="page-subtitle">
+            Monitored Work:{' '}
+            <Link to={`/works/${investigation.workId}`} className="mono" style={{ color: '#0f766e', fontWeight: 600 }}>
               {investigation.workId}
             </Link>
           </p>
@@ -168,83 +179,109 @@ export function InvestigationDetailPage() {
       </div>
 
       {error && (
-        <div className="login-error" style={{ marginBottom: 20 }}>
+        <div className="form-error-banner" style={{ marginBottom: 20 }}>
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-3" style={{ alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20, alignItems: 'start' }}>
         {/* Left Column: Notes & Risk Evidence */}
-        <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div className="panel">
-            <div className="panel-header">
-              <h3>Notes</h3>
-              <span className="muted">{investigation.notes.length}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Notes Panel */}
+          <div className="table-card" style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+              <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--slate-900)' }}>Investigation Notes & Log</h2>
+              <span style={{ fontSize: '12.5px', color: '#64748b' }}>{investigation.notes.length} entries</span>
             </div>
-            <div className="panel-body">
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {investigation.notes.length === 0 && (
                 <EmptyState
-                  title="No notes yet"
-                  message="Add findings, evidence references, or next steps below."
+                  title="No notes recorded"
+                  message="Add official notes, audit observations, or verification remarks below."
                 />
               )}
               {investigation.notes.map((note) => (
-                <div className="note-item" key={note._id}>
-                  <div className="note-head">
-                    <span className="note-author">{note.authorName}</span>
-                    <span>{formatDateTime(note.createdAt)}</span>
+                <div
+                  key={note._id}
+                  style={{
+                    padding: '12px 16px',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <strong style={{ color: '#0f172a', fontSize: '13px' }}>{note.authorName}</strong>
+                    <span style={{ color: '#64748b', fontSize: '11.5px' }}>{formatDateTime(note.createdAt)}</span>
                   </div>
-                  <p className="note-content">{note.content}</p>
+                  <p style={{ fontSize: '13px', color: '#334155', lineHeight: 1.45 }}>{note.content}</p>
                 </div>
               ))}
 
-              <form onSubmit={handleAddNote} style={{ marginTop: 20 }}>
-                <div className="field">
-                  <label htmlFor="note">Add a note</label>
-                  <textarea
-                    id="note"
-                    rows={3}
-                    value={noteContent}
-                    onChange={(e) => setNoteContent(e.target.value)}
-                    placeholder="Record what was reviewed, evidence found, or next steps…"
-                  />
-                </div>
+              <form onSubmit={handleAddNote} style={{ marginTop: 12 }}>
+                <textarea
+                  className="table-search-input"
+                  style={{ height: '70px', padding: '10px 12px', resize: 'vertical' }}
+                  rows={3}
+                  value={noteContent}
+                  onChange={(e) => setNoteContent(e.target.value)}
+                  placeholder="Record what was audited, site verification findings, or next steps…"
+                />
                 <button
                   type="submit"
-                  className="btn btn-primary btn-sm"
-                  style={{ marginTop: 10 }}
+                  className="btn-table-tool"
+                  style={{ marginTop: 10, backgroundColor: '#0f766e', color: '#ffffff', borderColor: '#0f766e' }}
                   disabled={isAddingNote || !noteContent.trim()}
                 >
-                  {isAddingNote ? 'Adding…' : 'Add note'}
+                  {isAddingNote ? 'Recording…' : 'Add Note'}
                 </button>
               </form>
             </div>
           </div>
 
-          {/* Linked Risk Evidence Panel */}
-          <div className="panel">
-            <div className="panel-header">
-              <h3>Linked risk evidence</h3>
+          {/* Linked Risk Evidence */}
+          <div className="table-card" style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+              <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--slate-900)' }}>Linked Risk Signals</h2>
               {riskAssessment && <RiskBadge level={riskAssessment.level} />}
             </div>
-            <div className="panel-body">
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {!riskAssessment || riskAssessment.signals.length === 0 ? (
                 <EmptyState
-                  title="No risk signals recorded"
-                  message="This work has no linked risk signals or has not been scored yet."
+                  title="No risk signals flagged"
+                  message="This work has no anomaly signals detected."
                 />
               ) : (
                 riskAssessment.signals.map((signal, idx) => (
-                  <div className="signal-row" key={`${signal.type}-${idx}`}>
-                    <div className="signal-row-head">
-                      <span className="signal-name">{humanize(signal.type)}</span>
+                  <div
+                    key={`${signal.type}-${idx}`}
+                    style={{
+                      padding: '14px 16px',
+                      backgroundColor: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '13.5px' }}>{humanize(signal.type)}</span>
                       <RiskBadge level={signal.severity} />
                     </div>
-                    <p className="signal-explanation">{signal.explanation}</p>
-                    {Object.keys(signal.evidence ?? {}).length > 0 && (
-                      <div className="evidence-list">
+                    <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.45 }}>{signal.explanation}</p>
+                    {signal.evidence && Object.keys(signal.evidence).length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
                         {Object.entries(signal.evidence).map(([key, value]) => (
-                          <span className="evidence-chip" key={key}>
+                          <span
+                            key={key}
+                            style={{
+                              padding: '2px 8px',
+                              backgroundColor: '#e2e8f0',
+                              color: '#334155',
+                              fontSize: '11px',
+                              borderRadius: '4px',
+                            }}
+                          >
                             {key}: {String(value)}
                           </span>
                         ))}
@@ -257,186 +294,139 @@ export function InvestigationDetailPage() {
           </div>
         </div>
 
-        {/* Right Column: Status & Timeline/Audit */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div className="panel">
-            <div className="panel-header">
-              <h3>Status</h3>
+        {/* Right Column: Case Status & Assignment */}
+        <div className="table-card" style={{ padding: '24px' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--slate-900)', marginBottom: '16px' }}>Case Status</h2>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <StatusPill status={investigation.status} />
+              <RiskBadge level={investigation.priority} />
             </div>
-            <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <StatusPill status={investigation.status} />
-                <RiskBadge level={investigation.priority} />
-              </div>
 
-              {investigation.status === 'PENDING_VERIFICATION' && (
-                <div
-                  style={{
-                    background: '#fef3c7',
-                    border: '1px solid #fde68a',
-                    borderRadius: 6,
-                    padding: '10px 12px',
-                    fontSize: '12.5px',
-                    color: '#92400e',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  <strong>Pending Verification:</strong> Proposed finding:{' '}
-                  <em>{investigation.finding ? humanize(investigation.finding) : 'None'}</em>.
-                  Awaiting State Authority or Ministry review.
-                </div>
-              )}
-
-              <div className="field">
-                <label htmlFor="statusSelect">Update status</label>
-                <select
-                  id="statusSelect"
-                  value={investigation.status}
-                  disabled={isSaving}
-                  onChange={(e) =>
-                    handleStatusChange(e.target.value as InvestigationStatus)
-                  }
-                >
-                  {availableStatuses.map((s) => (
-                    <option key={s} value={s}>
-                      {humanize(s)}
-                    </option>
-                  ))}
-                </select>
-                {investigation.finding === 'REFERRED_FOR_ACTION' && isStateAuthority && (
-                  <small style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
-                    Note: Cases referred for action can only be resolved by Ministry.
-                  </small>
-                )}
+            {investigation.status === 'PENDING_VERIFICATION' && (
+              <div
+                style={{
+                  background: '#fef3c7',
+                  border: '1px solid #fde68a',
+                  borderRadius: 6,
+                  padding: '10px 12px',
+                  fontSize: '12px',
+                  color: '#92400e',
+                  lineHeight: 1.4,
+                }}
+              >
+                <strong>Pending Verification:</strong> Proposed finding:{' '}
+                <em>{investigation.finding ? humanize(investigation.finding) : 'None'}</em>.
               </div>
+            )}
 
-              <div className="field">
-                <label htmlFor="prioritySelect">Priority</label>
-                <select
-                  id="prioritySelect"
-                  value={investigation.priority}
-                  disabled={isSaving}
-                  onChange={(e) =>
-                    handleUpdate({
-                      priority: e.target.value as investigationsApi.InvestigationUpdate['priority'],
-                    })
-                  }
-                >
-                  {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map((p) => (
-                    <option key={p} value={p}>
-                      {humanize(p)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="field">
-                <label htmlFor="findingSelect">Finding</label>
-                <select
-                  id="findingSelect"
-                  value={investigation.finding ?? ''}
-                  disabled={isSaving}
-                  onChange={(e) =>
-                    handleUpdate({
-                      finding: (e.target.value || null) as InvestigationFinding,
-                    })
-                  }
-                >
-                  <option value="">Not yet determined</option>
-                  {FINDING_OPTIONS.map((f) => (
-                    <option key={f} value={f}>
-                      {humanize(f)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="field">
-                <label htmlFor="assigneeSelect">Assigned investigator</label>
-                <select
-                  id="assigneeSelect"
-                  value={investigation.assignedTo ?? ''}
-                  disabled={isSaving}
-                  onChange={(e) =>
-                    handleUpdate({
-                      assignedTo: e.target.value || null,
-                    })
-                  }
-                >
-                  <option value="">Unassigned</option>
-                  {districtAuthorities.length > 0 && (
-                    <optgroup
-                      label={`District Authorities (${work?.location?.district || 'Matching District'})`}
-                    >
-                      {districtAuthorities.map((u) => (
-                        <option key={u._id} value={u._id}>
-                          {u.name} (District Authority - {u.scope?.district})
-                        </option>
-                      ))}
-                    </optgroup>
-                  )}
-                  {stateAndMinistry.length > 0 && (
-                    <optgroup label="State & Ministry Reviewers">
-                      {stateAndMinistry.map((u) => (
-                        <option key={u._id} value={u._id}>
-                          {u.name} ({humanize(u.role)}
-                          {u.scope?.state ? ` - ${u.scope.state}` : ''})
-                        </option>
-                      ))}
-                    </optgroup>
-                  )}
-                  {otherAuthorities.length > 0 && (
-                    <optgroup label="Other Personnel">
-                      {otherAuthorities.map((u) => (
-                        <option key={u._id} value={u._id}>
-                          {u.name} ({humanize(u.role)}
-                          {u.scope?.district ? ` - ${u.scope.district}` : ''})
-                        </option>
-                      ))}
-                    </optgroup>
-                  )}
-                </select>
-              </div>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '6px' }}>
+                Workflow Status
+              </label>
+              <select
+                className="table-search-input"
+                value={investigation.status}
+                disabled={isSaving}
+                onChange={(e) => handleStatusChange(e.target.value as InvestigationStatus)}
+              >
+                {availableStatuses.map((s) => (
+                  <option key={s} value={s}>
+                    {humanize(s)}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
 
-          <div className="panel">
-            <div className="panel-header">
-              <h3>Timeline & Audit Trail</h3>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '6px' }}>
+                Priority Level
+              </label>
+              <select
+                className="table-search-input"
+                value={investigation.priority}
+                disabled={isSaving}
+                onChange={(e) =>
+                  handleUpdate({
+                    priority: e.target.value as investigationsApi.InvestigationUpdate['priority'],
+                  })
+                }
+              >
+                {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map((p) => (
+                  <option key={p} value={p}>
+                    {humanize(p)}
+                  </option>
+                ))}
+              </select>
             </div>
-            <div className="panel-body">
-              <dl className="info-grid" style={{ gridTemplateColumns: '1fr' }}>
-                <div className="info-item">
-                  <dt>Opened</dt>
-                  <dd className="mono">{formatDateTime(investigation.createdAt)}</dd>
-                </div>
-                <div className="info-item">
-                  <dt>Last updated</dt>
-                  <dd className="mono">{formatDateTime(investigation.updatedAt)}</dd>
-                </div>
-              </dl>
 
-              {investigation.history && investigation.history.length > 0 && (
-                <>
-                  <hr className="divider" style={{ margin: '16px 0' }} />
-                  <div className="section-label" style={{ marginBottom: 12 }}>Change History</div>
-                  <div className="timeline">
-                    {investigation.history.map((h, i) => (
-                      <div className="timeline-item" key={h._id || i}>
-                        <span className="timeline-marker" />
-                        <div className="timeline-content">
-                          <div className="timeline-date">{formatDateTime(h.changedAt)}</div>
-                          <div style={{ marginTop: 2, fontSize: '0.85rem' }}>
-                            <strong>{h.changedByName}</strong> changed <em>{humanize(h.field)}</em> from{' '}
-                            <code className="mono">{h.oldValue ? String(h.oldValue) : 'none'}</code> to{' '}
-                            <code className="mono">{h.newValue ? String(h.newValue) : 'none'}</code>
-                          </div>
-                        </div>
-                      </div>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '6px' }}>
+                Audit Finding
+              </label>
+              <select
+                className="table-search-input"
+                value={investigation.finding ?? ''}
+                disabled={isSaving}
+                onChange={(e) =>
+                  handleUpdate({
+                    finding: (e.target.value || null) as InvestigationFinding,
+                  })
+                }
+              >
+                <option value="">Not yet determined</option>
+                {FINDING_OPTIONS.map((f) => (
+                  <option key={f} value={f}>
+                    {humanize(f)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '6px' }}>
+                Assigned Officer
+              </label>
+              <select
+                className="table-search-input"
+                value={investigation.assignedTo ?? ''}
+                disabled={isSaving}
+                onChange={(e) =>
+                  handleUpdate({
+                    assignedTo: e.target.value || null,
+                  })
+                }
+              >
+                <option value="">Unassigned</option>
+                {districtAuthorities.length > 0 && (
+                  <optgroup label="District Authorities (In-Scope)">
+                    {districtAuthorities.map((u) => (
+                      <option key={u._id} value={u._id}>
+                        {u.name} ({u.email})
+                      </option>
                     ))}
-                  </div>
-                </>
-              )}
+                  </optgroup>
+                )}
+                {stateAndMinistry.length > 0 && (
+                  <optgroup label="State & Ministry Authorities">
+                    {stateAndMinistry.map((u) => (
+                      <option key={u._id} value={u._id}>
+                        {u.name} ({humanize(u.role)})
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                {otherAuthorities.length > 0 && (
+                  <optgroup label="Other Officers">
+                    {otherAuthorities.map((u) => (
+                      <option key={u._id} value={u._id}>
+                        {u.name} ({humanize(u.role)})
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
             </div>
           </div>
         </div>

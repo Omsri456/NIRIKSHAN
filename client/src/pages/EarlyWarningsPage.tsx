@@ -35,7 +35,6 @@ export function EarlyWarningsPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   function handlePageChange(nextPage: number) {
@@ -83,92 +82,101 @@ export function EarlyWarningsPage() {
     <div>
       <div className="page-header">
         <div>
-          <h2>Early warning alerts</h2>
-          <p className="subtitle">
+          <div className="page-eyebrow">PREDICTIVE INTELLIGENCE</div>
+          <h1 className="page-title">Early warning alerts</h1>
+          <p className="page-subtitle">
             Automated alerts triggered by risk-level escalations or rapid score jumps across monitored works.
             An early warning flags works for priority review — it is not a finding of fraud.
           </p>
         </div>
       </div>
 
-      <div className="panel">
+      <div className="table-card">
         {isLoading && <LoadingState label="Loading early warning alerts…" />}
         {error && !isLoading && <ErrorState message={error} onRetry={load} />}
 
         {result && !isLoading && !error && result.data.length === 0 && (
           <EmptyState
             title="No early warning alerts"
-            message="No risk escalations or rapid score jumps detected in your scope."
+            message="No risk escalations or rapid score jumps detected in your administrative scope."
           />
         )}
 
         {result && !isLoading && !error && result.data.length > 0 && (
           <>
-            <div className="table-scroll">
-              <table className="data-table">
+            <div className="data-table-wrap">
+              <table className="gov-data-table">
                 <thead>
                   <tr>
+                    <th style={{ width: '40px' }}>#</th>
                     <th>Work ID</th>
-                    <th>Previous → New Score</th>
+                    <th>Score Delta</th>
                     <th>Level Change</th>
                     <th>Trigger Type</th>
                     <th>Detected</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th style={{ textAlign: 'right', paddingRight: '24px' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {result.data.map((alert) => (
-                    <tr key={alert._id}>
-                      <td className="mono cell-primary">{alert.workId}</td>
-                      <td className="mono">
-                        {alert.previousScore} → {alert.newScore}{' '}
-                        <span className="cell-secondary">
-                          ({alert.scoreDelta >= 0 ? `+${alert.scoreDelta}` : alert.scoreDelta})
-                        </span>
-                      </td>
-                      <td>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                          <RiskBadge level={alert.previousLevel} />
-                          <span>→</span>
-                          <RiskBadge level={alert.newLevel} />
-                        </div>
-                      </td>
-                      <td className="cell-secondary">{humanize(alert.triggerType)}</td>
-                      <td className="cell-secondary">{formatDate(alert.triggeredAt)}</td>
-                      <td>
-                        <span
-                          className={`badge ${
-                            alert.status === 'UNSEEN' ? 'badge-critical' : 'badge-neutral'
-                          }`}
-                        >
-                          {alert.status}
-                        </span>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                          <button
-                            type="button"
-                            className="btn btn-primary btn-sm"
-                            disabled={creatingWorkId === alert.workId}
-                            onClick={() => handleOpenInvestigation(alert.workId, alert.newLevel)}
+                  {result.data.map((alert, index) => {
+                    const rowIndex = (page - 1) * result.pagination.limit + index + 1;
+                    return (
+                      <tr key={alert._id}>
+                        <td className="cell-index">{rowIndex}.</td>
+                        <td className="cell-work-id">{alert.workId}</td>
+                        <td className="mono" style={{ fontWeight: 600 }}>
+                          {alert.previousScore} → {alert.newScore}{' '}
+                          <span style={{ fontSize: '12px', color: alert.scoreDelta > 0 ? '#b91c1c' : '#047857' }}>
+                            ({alert.scoreDelta >= 0 ? `+${alert.scoreDelta}` : alert.scoreDelta})
+                          </span>
+                        </td>
+                        <td>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <RiskBadge level={alert.previousLevel} />
+                            <span style={{ color: '#94a3b8' }}>→</span>
+                            <RiskBadge level={alert.newLevel} />
+                          </div>
+                        </td>
+                        <td style={{ color: '#475569' }}>{humanize(alert.triggerType)}</td>
+                        <td style={{ color: '#64748b' }}>{formatDate(alert.triggeredAt)}</td>
+                        <td>
+                          <span
+                            className={`gov-risk-badge ${
+                              alert.status === 'UNSEEN' ? 'critical' : 'low'
+                            }`}
                           >
-                            {creatingWorkId === alert.workId ? 'Opening…' : 'Open Investigation'}
-                          </button>
-                          {alert.status === 'UNSEEN' && (
+                            <span className="gov-risk-badge-dot" />
+                            {alert.status}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'right', paddingRight: '20px' }}>
+                          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                             <button
                               type="button"
-                              className="btn btn-secondary btn-sm"
-                              disabled={acknowledgingId === alert._id}
-                              onClick={() => handleAcknowledge(alert._id)}
+                              className="btn-table-tool"
+                              style={{ backgroundColor: '#0f766e', color: '#ffffff', borderColor: '#0f766e', height: '32px', padding: '0 12px', fontSize: '12px' }}
+                              disabled={creatingWorkId === alert.workId}
+                              onClick={() => handleOpenInvestigation(alert.workId, alert.newLevel)}
                             >
-                              {acknowledgingId === alert._id ? 'Ack…' : 'Acknowledge'}
+                              {creatingWorkId === alert.workId ? 'Opening…' : 'Investigate'}
                             </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            {alert.status === 'UNSEEN' && (
+                              <button
+                                type="button"
+                                className="btn-table-tool"
+                                style={{ height: '32px', padding: '0 12px', fontSize: '12px' }}
+                                disabled={acknowledgingId === alert._id}
+                                onClick={() => handleAcknowledge(alert._id)}
+                              >
+                                {acknowledgingId === alert._id ? 'Ack…' : 'Acknowledge'}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

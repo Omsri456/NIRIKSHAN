@@ -12,6 +12,7 @@ import {
   formatCurrencyCompact,
   formatDate,
   humanize,
+  translateWorkDescription,
 } from '@/utils/format';
 
 interface WorkDetailData {
@@ -22,7 +23,7 @@ interface WorkDetailData {
   similar: Work[];
 }
 
-type Tab = 'expenditures' | 'risk' | 'similar';
+type Tab = 'risk' | 'expenditures' | 'similar';
 
 export function WorkDetailPage() {
   const { workId } = useParams<{ workId: string }>();
@@ -55,7 +56,6 @@ export function WorkDetailPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workId]);
 
   async function handleOpenInvestigation() {
@@ -77,7 +77,7 @@ export function WorkDetailPage() {
     }
   }
 
-  if (isLoading) return <LoadingState label="Loading work intelligence…" />;
+  if (isLoading) return <LoadingState label="Loading work intelligence profile…" />;
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!data) return null;
 
@@ -85,108 +85,125 @@ export function WorkDetailPage() {
 
   return (
     <div>
+      {/* Page Header */}
       <div className="page-header">
         <div>
-          <Link to="/works" className="cell-secondary">
+          <Link
+            to="/works"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: '#0f766e',
+              fontSize: '13px',
+              fontWeight: 600,
+              marginBottom: '6px',
+            }}
+          >
             ← Back to works
           </Link>
-          <h2 style={{ marginTop: 8 }}>{work.description}</h2>
-          <p className="subtitle">
-            <span className="mono">{work.workId}</span> · {work.category} ·{' '}
+          <div className="page-eyebrow">WORK INTELLIGENCE DOSSIER</div>
+          <h1 className="page-title" style={{ fontSize: '22px' }}>{translateWorkDescription(work.description, work.category)}</h1>
+          <p className="page-subtitle">
+            <span className="mono" style={{ fontWeight: 600, color: '#0f172a' }}>{work.workId}</span> · {work.category} ·{' '}
             {work.location.constituency}, {work.location.district}, {work.location.state}
           </p>
         </div>
+
         <button
           type="button"
-          className="btn btn-primary"
+          className="btn-table-tool"
+          style={{ backgroundColor: '#0f766e', color: '#ffffff', borderColor: '#0f766e' }}
           onClick={handleOpenInvestigation}
           disabled={isCreatingInvestigation}
         >
-          {isCreatingInvestigation ? 'Opening…' : 'Open investigation'}
+          <span>{isCreatingInvestigation ? 'Opening…' : 'Open Investigation'}</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-3" style={{ alignItems: 'start' }}>
-        {/* Left column: work + financial info */}
-        <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <div className="panel">
-            <div className="panel-header">
-              <h3>Work details</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20, alignItems: 'start' }}>
+        {/* Left column: Work Details & Tabs */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Work Details Card */}
+          <div className="table-card" style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--slate-900)' }}>Work details</h2>
               <StatusPill status={work.execution.status} />
             </div>
-            <div className="panel-body">
-              <dl className="info-grid">
-                <div className="info-item">
-                  <dt>MP</dt>
-                  <dd>
-                    {work.mp.name} ({work.mp.house})
-                  </dd>
-                </div>
-                <div className="info-item">
-                  <dt>Implementing agency</dt>
-                  <dd>{work.implementingAgency.name}</dd>
-                </div>
-                <div className="info-item">
-                  <dt>Recommended amount</dt>
-                  <dd className="mono">{formatCurrency(work.recommendation.amount)}</dd>
-                </div>
-                <div className="info-item">
-                  <dt>Recommendation date</dt>
-                  <dd className="mono">{formatDate(work.recommendation.date)}</dd>
-                </div>
-                <div className="info-item">
-                  <dt>Final amount</dt>
-                  <dd className="mono">{formatCurrency(work.financial.finalAmount)}</dd>
-                </div>
-                <div className="info-item">
-                  <dt>Total expenditure</dt>
-                  <dd className="mono">{formatCurrency(work.financial.totalExpenditure)}</dd>
-                </div>
-                <div className="info-item">
-                  <dt>Start date</dt>
-                  <dd className="mono">{formatDate(work.execution.startDate)}</dd>
-                </div>
-                <div className="info-item">
-                  <dt>Completion date</dt>
-                  <dd className="mono">{formatDate(work.execution.completionDate)}</dd>
-                </div>
-                <div className="info-item">
-                  <dt>Asset status</dt>
-                  <dd>{humanize(work.asset.status)}</dd>
-                </div>
-                <div className="info-item">
-                  <dt>Source dataset</dt>
-                  <dd>{work.source.dataset}</dd>
-                </div>
-              </dl>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px 24px', fontSize: '13.5px' }}>
+              <div>
+                <span style={{ color: '#64748b', fontSize: '12px', display: 'block' }}>MP Sponsor</span>
+                <strong style={{ color: '#0f172a' }}>{work.mp.name} ({work.mp.house})</strong>
+              </div>
+              <div>
+                <span style={{ color: '#64748b', fontSize: '12px', display: 'block' }}>Implementing Agency</span>
+                <strong style={{ color: '#0f172a' }}>{work.implementingAgency.name}</strong>
+              </div>
+              <div>
+                <span style={{ color: '#64748b', fontSize: '12px', display: 'block' }}>Recommended Amount</span>
+                <span className="mono" style={{ fontWeight: 600 }}>{formatCurrency(work.recommendation.amount)}</span>
+              </div>
+              <div>
+                <span style={{ color: '#64748b', fontSize: '12px', display: 'block' }}>Sanction Amount</span>
+                <span className="mono" style={{ fontWeight: 600 }}>{formatCurrency(work.financial.finalAmount)}</span>
+              </div>
+              <div>
+                <span style={{ color: '#64748b', fontSize: '12px', display: 'block' }}>Total Expenditure</span>
+                <span className="mono" style={{ color: '#0f766e', fontWeight: 600 }}>{formatCurrency(work.financial.totalExpenditure)}</span>
+              </div>
+              <div>
+                <span style={{ color: '#64748b', fontSize: '12px', display: 'block' }}>Recommendation Date</span>
+                <span className="mono">{formatDate(work.recommendation.date)}</span>
+              </div>
             </div>
           </div>
 
-          <div className="panel">
-            <div className="tabs" style={{ padding: '0 20px', marginBottom: 0, marginTop: 4 }}>
+          {/* Tabs Card */}
+          <div className="table-card">
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--border-card)', padding: '0 16px', backgroundColor: '#f8fafc' }}>
               <button
                 type="button"
-                className={`tab-btn${tab === 'risk' ? ' active' : ''}`}
+                style={{
+                  padding: '14px 18px',
+                  fontSize: '13.5px',
+                  fontWeight: 600,
+                  color: tab === 'risk' ? '#0f766e' : '#64748b',
+                  borderBottom: tab === 'risk' ? '2.5px solid #0f766e' : '2.5px solid transparent',
+                }}
                 onClick={() => setTab('risk')}
               >
-                Risk signals
+                Risk Signals ({risk?.signals.length ?? 0})
               </button>
               <button
                 type="button"
-                className={`tab-btn${tab === 'expenditures' ? ' active' : ''}`}
+                style={{
+                  padding: '14px 18px',
+                  fontSize: '13.5px',
+                  fontWeight: 600,
+                  color: tab === 'expenditures' ? '#0f766e' : '#64748b',
+                  borderBottom: tab === 'expenditures' ? '2.5px solid #0f766e' : '2.5px solid transparent',
+                }}
                 onClick={() => setTab('expenditures')}
               >
                 Expenditures ({expenditures.length})
               </button>
               <button
                 type="button"
-                className={`tab-btn${tab === 'similar' ? ' active' : ''}`}
+                style={{
+                  padding: '14px 18px',
+                  fontSize: '13.5px',
+                  fontWeight: 600,
+                  color: tab === 'similar' ? '#0f766e' : '#64748b',
+                  borderBottom: tab === 'similar' ? '2.5px solid #0f766e' : '2.5px solid transparent',
+                }}
                 onClick={() => setTab('similar')}
               >
-                Similar works ({similar.length})
+                Similar Works ({similar.length})
               </button>
             </div>
-            <div className="panel-body">
+
+            <div style={{ padding: '20px 24px' }}>
               {tab === 'risk' && <RiskSignalsPanel risk={risk} history={riskHistory} />}
               {tab === 'expenditures' && <ExpenditurePanel expenditures={expenditures} />}
               {tab === 'similar' && <SimilarWorksPanel works={similar} />}
@@ -194,35 +211,24 @@ export function WorkDetailPage() {
           </div>
         </div>
 
-        {/* Right column: risk snapshot */}
-        <div className="panel">
-          <div className="panel-header">
-            <h3>Current risk</h3>
-          </div>
-          <div className="panel-body">
-            {!risk && (
-              <EmptyState
-                title="No assessment yet"
-                message="This work has not been scored by the risk engine."
-              />
-            )}
-            {risk && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-                <RiskGauge score={risk.score} level={risk.level} size={140} />
-                <RiskBadge level={risk.level} />
-                <p
-                  className="cell-secondary"
-                  style={{ textAlign: 'center' }}
-                >
-                  {risk.signals.length} signal{risk.signals.length === 1 ? '' : 's'} · model{' '}
-                  {risk.modelVersion}
-                </p>
-                <p className="cell-secondary" style={{ textAlign: 'center' }}>
-                  Generated {formatDate(risk.generatedAt)}
-                </p>
+        {/* Right column: Risk Gauge & Score Card */}
+        <div className="table-card" style={{ padding: '24px' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--slate-900)', marginBottom: '16px' }}>Current risk posture</h2>
+          {!risk ? (
+            <EmptyState
+              title="No assessment yet"
+              message="This work has not yet been processed by the anomaly detection engine."
+            />
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+              <RiskGauge score={risk.score} level={risk.level} size={150} />
+              <RiskBadge level={risk.level} />
+              <div style={{ textAlign: 'center', fontSize: '12.5px', color: '#64748b' }}>
+                <p>{risk.signals.length} signal{risk.signals.length === 1 ? '' : 's'} flagged · Model {risk.modelVersion}</p>
+                <p style={{ marginTop: '4px' }}>Evaluated {formatDate(risk.generatedAt)}</p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -231,106 +237,63 @@ export function WorkDetailPage() {
 
 function RiskSignalsPanel({
   risk,
-  history,
 }: {
   risk: RiskAssessment | null;
   history: RiskAssessment[];
 }) {
-  if (!risk) {
+  if (!risk || risk.signals.length === 0) {
     return (
       <EmptyState
-        title="No risk signals"
-        message="Risk assessments are generated when this work is next scored."
+        title="No anomalous signals detected"
+        message="The statistical models found no significant anomalies for this work."
       />
     );
   }
 
   return (
-    <div>
-      <div>
-        {risk.signals.length === 0 && (
-          <EmptyState title="No individual signals recorded for this assessment." />
-        )}
-        {risk.signals.map((signal, idx) => (
-          <div className="signal-row" key={`${signal.type}-${idx}`}>
-            <div className="signal-row-head">
-              <span className="signal-name">{humanize(signal.type)}</span>
-              <RiskBadge level={signal.severity} />
-            </div>
-            <p className="signal-explanation">{signal.explanation}</p>
-            {Object.keys(signal.evidence ?? {}).length > 0 && (
-              <div className="evidence-list">
-                {Object.entries(signal.evidence).map(([key, value]) => (
-                  <span className="evidence-chip" key={key}>
-                    {key}: {String(value)}
-                  </span>
-                ))}
-              </div>
-            )}
-            <p className="signal-score" style={{ marginTop: 6 }}>
-              Signal score {signal.score.toFixed(2)}
-            </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      {risk.signals.map((signal, idx) => (
+        <div
+          key={idx}
+          style={{
+            padding: '14px 16px',
+            backgroundColor: '#fafbfc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '13.5px' }}>{humanize(signal.type)}</span>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#b91c1c' }}>Score +{signal.score}</span>
           </div>
-        ))}
-      </div>
-
-      {history.length > 1 && (
-        <>
-          <hr className="divider" />
-          <div className="section-label">Risk score history</div>
-          <div className="timeline">
-            {history.map((h) => (
-              <div className="timeline-item" key={h._id}>
-                <span className="timeline-marker" />
-                <div className="timeline-content">
-                  <div className="timeline-date">{formatDate(h.generatedAt)}</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                    <span className="mono" style={{ fontWeight: 600 }}>
-                      {h.score}
-                    </span>
-                    <RiskBadge level={h.level} />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+          <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.45 }}>{signal.explanation}</p>
+        </div>
+      ))}
     </div>
   );
 }
 
 function ExpenditurePanel({ expenditures }: { expenditures: Expenditure[] }) {
   if (expenditures.length === 0) {
-    return (
-      <EmptyState
-        title="No expenditure records"
-        message="No payments have been recorded against this work yet."
-      />
-    );
+    return <EmptyState title="No expenditures recorded" message="No payment vouchers logged for this work." />;
   }
+
   return (
-    <div className="table-scroll">
-      <table className="data-table">
+    <div className="data-table-wrap">
+      <table className="gov-data-table">
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Vendor</th>
-            <th>Agency</th>
+            <th>Installment</th>
             <th>Amount</th>
-            <th>Status</th>
+            <th>Sanction / Voucher Date</th>
           </tr>
         </thead>
         <tbody>
-          {expenditures.map((e) => (
-            <tr key={e._id}>
-              <td className="mono cell-secondary">{formatDate(e.date)}</td>
-              <td className="cell-primary">{e.vendor.name}</td>
-              <td>{e.implementingAgency}</td>
-              <td className="mono">{formatCurrency(e.amount)}</td>
-              <td>
-                <StatusPill status={e.paymentStatus} />
-              </td>
+          {expenditures.map((exp, idx) => (
+            <tr key={idx}>
+              <td style={{ fontWeight: 600 }}>Installment #{idx + 1}</td>
+              <td className="mono" style={{ color: '#0f766e', fontWeight: 600 }}>{formatCurrency(exp.amount)}</td>
+              <td style={{ color: '#64748b' }}>{formatDate(exp.date)}</td>
             </tr>
           ))}
         </tbody>
@@ -342,33 +305,27 @@ function ExpenditurePanel({ expenditures }: { expenditures: Expenditure[] }) {
 function SimilarWorksPanel({ works }: { works: Work[] }) {
   const navigate = useNavigate();
   if (works.length === 0) {
-    return (
-      <EmptyState
-        title="No potentially similar works detected"
-        message="The NLP similarity service found no comparable works above the match threshold."
-      />
-    );
+    return <EmptyState title="No peer works found" message="No similar category works located in nearby districts." />;
   }
+
   return (
-    <div className="table-scroll">
-      <table className="data-table">
+    <div className="data-table-wrap">
+      <table className="gov-data-table">
         <thead>
           <tr>
             <th>Work ID</th>
-            <th>Description</th>
-            <th>Location</th>
-            <th>Final amount</th>
+            <th>District</th>
+            <th>Final Amount</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
           {works.map((w) => (
             <tr key={w._id} className="clickable" onClick={() => navigate(`/works/${w.workId}`)}>
-              <td className="mono cell-secondary">{w.workId}</td>
-              <td className="cell-primary">{w.description}</td>
-              <td>
-                {w.location.district}, {w.location.state}
-              </td>
+              <td className="cell-work-id">{w.workId}</td>
+              <td style={{ color: '#475569' }}>{w.location.district}</td>
               <td className="mono">{formatCurrencyCompact(w.financial.finalAmount)}</td>
+              <td><StatusPill status={w.execution.status} /></td>
             </tr>
           ))}
         </tbody>

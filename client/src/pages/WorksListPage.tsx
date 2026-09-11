@@ -43,7 +43,6 @@ export function WorksListPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, status, search]);
 
   function updateParam(key: string, value: string) {
@@ -69,98 +68,103 @@ export function WorksListPage() {
     <div>
       <div className="page-header">
         <div>
-          <h2>Works</h2>
-          <p className="subtitle">Every MPLADS work record within your scope.</p>
+          <div className="page-eyebrow">MONITORING REPOSITORY</div>
+          <h1 className="page-title">Works</h1>
+          <p className="page-subtitle">Every MPLADS development work record within your administrative scope.</p>
         </div>
       </div>
 
-      <form className="filter-bar" onSubmit={handleSearchSubmit}>
-        <div className="field grow">
-          <label htmlFor="search">Search description</label>
-          <input
-            id="search"
-            type="text"
-            placeholder="e.g. community hall, drinking water…"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="status">Status</label>
-          <select
-            id="status"
-            value={status}
-            onChange={(e) => updateParam('status', e.target.value)}
-          >
-            <option value="">All statuses</option>
-            {WORK_STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {s.replace('_', ' ')}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button type="submit" className="btn btn-secondary">
-          Apply
-        </button>
-      </form>
+      <div className="table-card">
+        {/* Search & Filter Toolbar */}
+        <form className="table-toolbar" onSubmit={handleSearchSubmit}>
+          <div className="table-search-wrap">
+            <svg className="table-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              className="table-search-input"
+              placeholder="Search by description, keyword or ID…"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+          </div>
 
-      <div className="panel">
+          <div className="table-actions-group">
+            <select
+              className="timeframe-select"
+              value={status}
+              onChange={(e) => updateParam('status', e.target.value)}
+            >
+              <option value="">All Statuses</option>
+              {WORK_STATUS_OPTIONS.map((s) => (
+                <option key={s} value={s}>
+                  {s.replace('_', ' ')}
+                </option>
+              ))}
+            </select>
+
+            <button type="submit" className="btn-table-tool" style={{ backgroundColor: '#0f766e', color: '#ffffff', borderColor: '#0f766e' }}>
+              <span>Search</span>
+            </button>
+          </div>
+        </form>
+
         {isLoading && <LoadingState label="Loading works…" />}
         {error && !isLoading && <ErrorState message={error} onRetry={load} />}
 
         {result && !isLoading && !error && result.data.length === 0 && (
           <EmptyState
             title="No works match these filters"
-            message="Try clearing the search term or status filter."
+            message="Try adjusting the search query or status filter."
           />
         )}
 
         {result && !isLoading && !error && result.data.length > 0 && (
           <>
-            <div className="table-scroll">
-              <table className="data-table">
+            <div className="data-table-wrap">
+              <table className="gov-data-table">
                 <thead>
                   <tr>
+                    <th style={{ width: '40px' }}>#</th>
                     <th>Work ID</th>
                     <th>Description</th>
                     <th>Location</th>
                     <th>Status</th>
-                    <th>Final amount</th>
+                    <th>Final Amount</th>
                     <th>Expenditure</th>
                     <th>Updated</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {result.data.map((work) => (
-                    <tr
-                      key={work._id}
-                      className="clickable"
-                      tabIndex={0}
-                      role="link"
-                      onClick={() => navigate(`/works/${work.workId}`)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          navigate(`/works/${work.workId}`);
-                        }
-                      }}
-                    >
-                      <td className="mono cell-secondary">{work.workId}</td>
-                      <td className="cell-primary">{translateWorkDescription(work.description, work.category)}</td>
-                      <td>
-                        {work.location.district}, {work.location.state}
-                      </td>
-                      <td>
-                        <StatusPill status={work.execution.status} />
-                      </td>
-                      <td className="mono">{formatCurrencyCompact(work.financial.finalAmount)}</td>
-                      <td className="mono">
-                        {formatCurrencyCompact(work.financial.totalExpenditure)}
-                      </td>
-                      <td className="cell-secondary">{formatDate(work.updatedAt)}</td>
-                    </tr>
-                  ))}
+                  {result.data.map((work, index) => {
+                    const rowIndex = (page - 1) * result.pagination.limit + index + 1;
+                    return (
+                      <tr
+                        key={work._id}
+                        className="clickable"
+                        onClick={() => navigate(`/works/${work.workId}`)}
+                      >
+                        <td className="cell-index">{rowIndex}.</td>
+                        <td className="cell-work-id">{work.workId}</td>
+                        <td style={{ maxWidth: '300px', fontWeight: 500 }}>
+                          {translateWorkDescription(work.description, work.category)}
+                        </td>
+                        <td style={{ color: '#475569' }}>
+                          {work.location.district}, {work.location.state}
+                        </td>
+                        <td>
+                          <StatusPill status={work.execution.status} />
+                        </td>
+                        <td className="mono" style={{ fontWeight: 600 }}>{formatCurrencyCompact(work.financial.finalAmount)}</td>
+                        <td className="mono" style={{ color: '#0f766e', fontWeight: 600 }}>
+                          {formatCurrencyCompact(work.financial.totalExpenditure)}
+                        </td>
+                        <td style={{ color: '#64748b' }}>{formatDate(work.updatedAt)}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
