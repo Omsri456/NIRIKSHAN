@@ -7,9 +7,12 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@nirikshan/shared': path.resolve(__dirname, '../shared/types'),
+      '@': path.resolve(import.meta.dirname, './src'),
+      '@nirikshan/shared': path.resolve(import.meta.dirname, '../shared/types'),
     },
+  },
+  optimizeDeps: {
+    include: ['maplibre-gl'],
   },
   server: {
     port: 5173,
