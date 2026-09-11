@@ -80,6 +80,15 @@ export async function register(payload: RegisterPayload) {
     );
   }
 
+  // System Administration Rule: Exactly one designated system administrator exists
+  if (payload.role === 'ADMIN') {
+    throw new AppError(
+      403,
+      'FORBIDDEN_ROLE',
+      'The System Administrator role is restricted and cannot be registered publicly. Please sign in using the designated administrator account.'
+    );
+  }
+
   const existingUser = await UserModel.findOne({ email: emailLower });
   if (existingUser) {
     throw new AppError(400, 'USER_EXISTS', 'An account with this email already exists.');
@@ -94,8 +103,8 @@ export async function register(payload: RegisterPayload) {
     passwordHash,
     role: payload.role || 'DISTRICT_AUTHORITY',
     scope: {
-      state: (payload.role === 'ADMIN' || payload.role === 'MINISTRY') ? null : (payload.scope?.state || null),
-      district: (payload.role === 'ADMIN' || payload.role === 'MINISTRY') ? null : (payload.scope?.district || null),
+      state: payload.role === 'MINISTRY' ? null : (payload.scope?.state || null),
+      district: payload.role === 'MINISTRY' ? null : (payload.scope?.district || null),
       constituency: payload.role === 'MP' ? (payload.scope?.constituency || null) : null,
     },
     isActive: true,

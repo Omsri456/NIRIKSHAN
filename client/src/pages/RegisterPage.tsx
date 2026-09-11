@@ -27,7 +27,7 @@ export function RegisterPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      const isNational = role === 'ADMIN' || role === 'MINISTRY';
+      const isNational = role === 'MINISTRY';
       const msg = await register({
         name,
         email,
@@ -264,7 +264,6 @@ export function RegisterPage() {
                 <option value="STATE_AUTHORITY">State Authority</option>
                 <option value="MP">Member of Parliament (MP)</option>
                 <option value="MINISTRY">Ministry Official</option>
-                <option value="ADMIN">System Administrator</option>
               </select>
             </div>
 
@@ -283,7 +282,7 @@ export function RegisterPage() {
               </div>
             )}
 
-            {(role === 'ADMIN' || role === 'MINISTRY') ? (
+            {role === 'MINISTRY' ? (
               <div
                 style={{
                   background: 'rgba(15, 76, 129, 0.08)',
@@ -298,10 +297,10 @@ export function RegisterPage() {
               >
                 <div style={{ fontWeight: 600, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span>🏛️</span>
-                  <span>National Jurisdiction (Unrestricted Access)</span>
+                  <span>National Jurisdiction (Ministry Oversight)</span>
                 </div>
                 <div>
-                  This administrative role has full nationwide oversight across all 86,833 MPLADS works and 543 parliamentary constituencies.
+                  Ministry officials have nationwide monitoring oversight across all 86,833 MPLADS works and 543 parliamentary constituencies.
                 </div>
               </div>
             ) : (
