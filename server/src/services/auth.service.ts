@@ -94,9 +94,9 @@ export async function register(payload: RegisterPayload) {
     passwordHash,
     role: payload.role || 'DISTRICT_AUTHORITY',
     scope: {
-      state: payload.scope?.state || null,
-      district: payload.scope?.district || null,
-      constituency: payload.scope?.constituency || null,
+      state: (payload.role === 'ADMIN' || payload.role === 'MINISTRY') ? null : (payload.scope?.state || null),
+      district: (payload.role === 'ADMIN' || payload.role === 'MINISTRY') ? null : (payload.scope?.district || null),
+      constituency: payload.role === 'MP' ? (payload.scope?.constituency || null) : null,
     },
     isActive: true,
     approvalStatus: 'PENDING',

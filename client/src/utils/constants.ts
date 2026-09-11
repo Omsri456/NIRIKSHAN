@@ -11,10 +11,8 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 /** What a role sees in the dashboard title / scope descriptor. */
 export function scopeDescriptor(role: UserRole, scope: { state: string | null; district: string | null; constituency: string | null }): string {
   if (role === UserRole.MINISTRY || role === UserRole.ADMIN) return 'National overview';
-  if (scope.constituency) return `${scope.constituency}, ${scope.district}, ${scope.state}`;
-  if (scope.district) return `${scope.district}, ${scope.state}`;
-  if (scope.state) return scope.state;
-  return 'National overview';
+  const parts = [scope.constituency, scope.district, scope.state].filter(Boolean);
+  return parts.length > 0 ? parts.join(', ') : 'National overview';
 }
 
 export const RISK_LEVEL_ORDER: RiskLevel[] = [

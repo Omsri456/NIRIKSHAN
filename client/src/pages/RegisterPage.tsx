@@ -27,14 +27,15 @@ export function RegisterPage() {
     setError(null);
     setIsSubmitting(true);
     try {
+      const isNational = role === 'ADMIN' || role === 'MINISTRY';
       const msg = await register({
         name,
         email,
         password,
         role,
         scope: {
-          state: state.trim() || null,
-          district: district.trim() || null,
+          state: isNational ? null : state.trim() || null,
+          district: isNational ? null : district.trim() || null,
           constituency: role === 'MP' ? constituency.trim() || null : null,
         },
       });
@@ -282,47 +283,70 @@ export function RegisterPage() {
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div className="gov-form-field">
-                <label htmlFor="reg-state">State / UT (Scope)</label>
-                <select
-                  id="reg-state"
-                  className="gov-text-input"
-                  style={{ paddingLeft: '12px' }}
-                  value={state}
-                  onChange={(e) => setState(e.target.value)}
-                >
-                  <option value="">National Scope</option>
-                  <option value="Assam">Assam</option>
-                  <option value="Bihar">Bihar</option>
-                  <option value="Gujarat">Gujarat</option>
-                  <option value="Karnataka">Karnataka</option>
-                  <option value="Kerala">Kerala</option>
-                  <option value="Madhya Pradesh">Madhya Pradesh</option>
-                  <option value="Maharashtra">Maharashtra</option>
-                  <option value="Punjab">Punjab</option>
-                  <option value="Rajasthan">Rajasthan</option>
-                  <option value="Tamil Nadu">Tamil Nadu</option>
-                  <option value="Telangana">Telangana</option>
-                  <option value="Uttar Pradesh">Uttar Pradesh</option>
-                  <option value="West Bengal">West Bengal</option>
-                  <option value="Delhi">Delhi</option>
-                </select>
+            {(role === 'ADMIN' || role === 'MINISTRY') ? (
+              <div
+                style={{
+                  background: 'rgba(15, 76, 129, 0.08)',
+                  border: '1px solid rgba(15, 76, 129, 0.25)',
+                  borderRadius: '6px',
+                  padding: '12px 14px',
+                  marginBottom: '16px',
+                  fontSize: '13px',
+                  color: '#0f4c81',
+                  lineHeight: 1.45,
+                }}
+              >
+                <div style={{ fontWeight: 600, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>🏛️</span>
+                  <span>National Jurisdiction (Unrestricted Access)</span>
+                </div>
+                <div>
+                  This administrative role has full nationwide oversight across all 86,833 MPLADS works and 543 parliamentary constituencies.
+                </div>
               </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="gov-form-field">
+                  <label htmlFor="reg-state">State / UT (Scope)</label>
+                  <select
+                    id="reg-state"
+                    className="gov-text-input"
+                    style={{ paddingLeft: '12px' }}
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                  >
+                    <option value="">National Scope</option>
+                    <option value="Assam">Assam</option>
+                    <option value="Bihar">Bihar</option>
+                    <option value="Gujarat">Gujarat</option>
+                    <option value="Karnataka">Karnataka</option>
+                    <option value="Kerala">Kerala</option>
+                    <option value="Madhya Pradesh">Madhya Pradesh</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    <option value="Punjab">Punjab</option>
+                    <option value="Rajasthan">Rajasthan</option>
+                    <option value="Tamil Nadu">Tamil Nadu</option>
+                    <option value="Telangana">Telangana</option>
+                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                    <option value="West Bengal">West Bengal</option>
+                    <option value="Delhi">Delhi</option>
+                  </select>
+                </div>
 
-              <div className="gov-form-field">
-                <label htmlFor="reg-district">District (Optional)</label>
-                <input
-                  id="reg-district"
-                  type="text"
-                  className="gov-text-input"
-                  style={{ paddingLeft: '12px' }}
-                  placeholder="e.g. Dahod"
-                  value={district}
-                  onChange={(e) => setDistrict(e.target.value)}
-                />
+                <div className="gov-form-field">
+                  <label htmlFor="reg-district">District (Optional)</label>
+                  <input
+                    id="reg-district"
+                    type="text"
+                    className="gov-text-input"
+                    style={{ paddingLeft: '12px' }}
+                    placeholder="e.g. Dahod"
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             <button type="submit" className="btn-gov-primary" style={{ marginTop: '8px' }} disabled={isSubmitting}>
               <span>{isSubmitting ? 'Registering account…' : 'Create Account'}</span>
