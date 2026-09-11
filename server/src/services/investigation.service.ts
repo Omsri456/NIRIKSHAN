@@ -1,5 +1,6 @@
 import { InvestigationModel } from '../models/Investigation';
 import { WorkModel } from '../models/Work';
+import { UserModel } from '../models/User';
 import { AppError } from '../utils';
 
 export interface InvestigationListQuery {
@@ -11,7 +12,11 @@ export interface InvestigationListQuery {
 /**
  * POST /api/investigations — create a new investigation.
  */
-export async function createInvestigation(body: { workId: string; priority?: string }, userId?: string, scopeFilter: Record<string, unknown> = {}) {
+export async function createInvestigation(
+  body: { workId: string; priority?: string },
+  creator?: { _id?: string; name?: string; role?: string } | string,
+  scopeFilter: Record<string, unknown> = {}
+) {
   const work = await WorkModel.findOne({ workId: body.workId });
   if (!work) {
     throw new AppError(404, 'WORK_NOT_FOUND', 'Work could not be found.');
@@ -33,19 +38,45 @@ export async function createInvestigation(body: { workId: string; priority?: str
     throw new AppError(409, 'INVESTIGATION_EXISTS', 'An active investigation already exists for this work.');
   }
 
+  const userId = typeof creator === 'string' ? creator : creator?._id;
+  const userName = typeof creator === 'object' ? creator?.name : undefined;
+  const userRole = typeof creator === 'object' ? creator?.role : undefined;
+
   return InvestigationModel.create({
     workId: body.workId,
     priority: body.priority || 'MEDIUM',
     assignedTo: userId || null,
     notes: [],
     finding: null,
+    history: [
+      {
+        field: 'status',
+        oldValue: null,
+        newValue: 'OPEN',
+        changedBy: userId || null,
+        changedByName: userName || 'System / Case Intake',
+        changedByRole: userRole || null,
+        changedAt: new Date(),
+      },
+    ],
   });
 }
 
 /**
  * GET /api/investigations — paginated list, optionally filtered by status.
  */
-export async function listInvestigations(query: InvestigationListQuery, scopeFilter: Record<string, unknown> = {}) {
+export async function listInvestigations(
+  query: InvestigationListQuery,
+  scopeFilter: Record<string, unknown> = {}
+): Promise<{
+  investigations: any[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}> {
   const page = query.page ?? 1;
   const limit = query.limit ?? 20;
 
@@ -66,8 +97,25 @@ export async function listInvestigations(query: InvestigationListQuery, scopeFil
     InvestigationModel.countDocuments(filter),
   ]);
 
+  const workIds = investigations.map((inv) => inv.workId);
+  const works = await WorkModel.find({ workId: { $in: workIds } })
+    .select('workId description category location')
+    .lean();
+  const workMap = new Map(works.map((w) => [w.workId, w]));
+
+  const investigationsWithWork = investigations.map((inv) => ({
+    ...inv,
+    work: workMap.get(inv.workId)
+      ? {
+          description: workMap.get(inv.workId)?.description,
+          category: workMap.get(inv.workId)?.category,
+          location: workMap.get(inv.workId)?.location,
+        }
+      : null,
+  }));
+
   return {
-    investigations,
+    investigations: investigationsWithWork,
     pagination: {
       page,
       limit,
@@ -185,10 +233,86 @@ export async function updateInvestigation(
     throw new AppError(403, 'FORBIDDEN', 'Only Ministry can close a case referred for action.');
   }
 
+  // Rule 4: Reopening a resolved or dismissed case requires role MINISTRY, STATE_AUTHORITY, or ADMIN
+  if (
+    (investigationToCheck.status === 'RESOLVED' || investigationToCheck.status === 'DISMISSED') &&
+    targetStatus &&
+    targetStatus !== investigationToCheck.status
+  ) {
+    const canReopen = ['MINISTRY', 'STATE_AUTHORITY', 'ADMIN'].includes(userRole || '');
+    if (!canReopen) {
+      throw new AppError(403, 'FORBIDDEN', 'Only State Authority, Ministry, or Admin can reopen a concluded case.');
+    }
+  }
+
+  // Rule 5: Concluded cases (RESOLVED/DISMISSED) are locked.
+  // Neither priority, assignedTo, nor finding can be modified while concluded unless the case is being reopened.
+  const isConcluded =
+    investigationToCheck.status === 'RESOLVED' || investigationToCheck.status === 'DISMISSED';
+  const isReopening =
+    targetStatus !== undefined &&
+    targetStatus !== investigationToCheck.status &&
+    (targetStatus === 'OPEN' || targetStatus === 'UNDER_REVIEW');
+
+  if (isConcluded && !isReopening) {
+    if (
+      body.priority !== undefined ||
+      body.assignedTo !== undefined ||
+      body.finding !== undefined ||
+      (targetStatus !== undefined && targetStatus === investigationToCheck.status)
+    ) {
+      throw new AppError(
+        400,
+        'VALIDATION_ERROR',
+        'Cannot modify attributes of a concluded (Resolved/Dismissed) investigation. The case must be reopened first.'
+      );
+    }
+  }
+
+  // Rule 6: State Authority cannot override or remove an officer assigned by Central Ministry/Admin,
+  // nor can they reassign an investigation currently assigned to a Central Ministry/Admin officer.
+  if (
+    body.assignedTo !== undefined &&
+    String(body.assignedTo ?? '') !== String(investigationToCheck.assignedTo ?? '')
+  ) {
+    if (userRole === 'STATE_AUTHORITY') {
+      // If the current assignee is Ministry or Admin
+      if (investigationToCheck.assignedTo) {
+        const currentAssignee = await UserModel.findById(investigationToCheck.assignedTo).lean();
+        if (
+          currentAssignee &&
+          (currentAssignee.role === 'MINISTRY' || currentAssignee.role === 'ADMIN')
+        ) {
+          throw new AppError(
+            403,
+            'FORBIDDEN',
+            'This investigation is assigned to a Central Ministry officer. State Authority cannot override Central assignment.'
+          );
+        }
+      }
+
+      // If the current officer was originally designated by Ministry or Admin
+      const lastAssignAction = [...(investigationToCheck.history || [])]
+        .reverse()
+        .find((h) => h.field === 'assignedTo');
+      if (
+        lastAssignAction &&
+        (lastAssignAction.changedByRole === 'MINISTRY' || lastAssignAction.changedByRole === 'ADMIN')
+      ) {
+        throw new AppError(
+          403,
+          'FORBIDDEN',
+          'This officer was designated by Central Ministry. State Authority cannot override Central orders.'
+        );
+      }
+    }
+  }
+
   const update: Record<string, unknown> = {};
   const historyEntries: Array<Record<string, unknown>> = [];
   const changedByName = user?.name || 'System';
   const changedBy = user?._id || null;
+  const changedByRole = user?.role || null;
   const now = new Date();
 
   if (body.status !== undefined && body.status !== investigationToCheck.status) {
@@ -199,6 +323,7 @@ export async function updateInvestigation(
       newValue: body.status,
       changedBy,
       changedByName,
+      changedByRole,
       changedAt: now,
     });
   }
@@ -211,6 +336,7 @@ export async function updateInvestigation(
       newValue: body.priority,
       changedBy,
       changedByName,
+      changedByRole,
       changedAt: now,
     });
   }
@@ -223,6 +349,7 @@ export async function updateInvestigation(
       newValue: body.finding,
       changedBy,
       changedByName,
+      changedByRole,
       changedAt: now,
     });
   }
@@ -235,6 +362,7 @@ export async function updateInvestigation(
       newValue: body.assignedTo,
       changedBy,
       changedByName,
+      changedByRole,
       changedAt: now,
     });
   }

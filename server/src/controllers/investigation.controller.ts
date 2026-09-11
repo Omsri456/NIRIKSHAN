@@ -7,7 +7,7 @@ import * as investigationService from '../services/investigation.service';
  */
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const scopeFilter = buildScopeFilter(req.user as any);
-  const investigation = await investigationService.createInvestigation(req.body, req.user?._id, scopeFilter);
+  const investigation = await investigationService.createInvestigation(req.body, req.user, scopeFilter);
   res.status(201).json({ success: true, data: investigation });
 });
 

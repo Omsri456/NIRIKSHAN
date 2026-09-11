@@ -19,6 +19,7 @@ export interface IInvestigation extends Document {
     newValue: any;
     changedBy: mongoose.Types.ObjectId | null;
     changedByName: string;
+    changedByRole?: string | null;
     changedAt: Date;
   }>;
 }
@@ -59,6 +60,7 @@ const InvestigationSchema = new Schema<IInvestigation>(
         newValue: { type: Schema.Types.Mixed, default: null },
         changedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
         changedByName: { type: String, required: true },
+        changedByRole: { type: String, default: null },
         changedAt: { type: Date, default: Date.now },
       },
     ],

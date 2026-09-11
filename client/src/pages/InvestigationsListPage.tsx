@@ -154,7 +154,7 @@ export function InvestigationsListPage() {
                 <thead>
                   <tr>
                     <th style={{ width: '40px' }}>#</th>
-                    <th>Work ID</th>
+                    <th style={{ minWidth: '280px' }}>Work Details</th>
                     <th>Status</th>
                     <th>Priority</th>
                     <th>Finding</th>
@@ -171,7 +171,51 @@ export function InvestigationsListPage() {
                         onClick={() => navigate(`/investigations/${inv._id}`)}
                       >
                         <td className="cell-index">{rowIndex}.</td>
-                        <td className="cell-work-id">{inv.workId}</td>
+                        <td style={{ maxWidth: '380px', padding: '12px 16px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                              <span className="mono" style={{ fontWeight: 700, color: '#0f766e', fontSize: '13px' }}>
+                                {inv.workId}
+                              </span>
+                              {inv.work?.category && (
+                                <span
+                                  style={{
+                                    fontSize: '10.5px',
+                                    backgroundColor: '#f1f5f9',
+                                    color: '#475569',
+                                    padding: '1px 6px',
+                                    borderRadius: '4px',
+                                    fontWeight: 600,
+                                    border: '1px solid #e2e8f0',
+                                  }}
+                                >
+                                  {inv.work.category}
+                                </span>
+                              )}
+                            </div>
+                            {inv.work?.description && (
+                              <div
+                                style={{
+                                  fontSize: '12.5px',
+                                  color: '#1e293b',
+                                  lineHeight: 1.35,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                  fontWeight: 500,
+                                }}
+                                title={inv.work.description}
+                              >
+                                {inv.work.description}
+                              </div>
+                            )}
+                            {inv.work?.location && (
+                              <div style={{ fontSize: '11px', color: '#64748b' }}>
+                                {[inv.work.location.district, inv.work.location.state].filter(Boolean).join(', ')}
+                              </div>
+                            )}
+                          </div>
+                        </td>
                         <td>
                           <StatusPill status={inv.status} />
                         </td>

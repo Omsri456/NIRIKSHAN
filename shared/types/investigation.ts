@@ -36,12 +36,22 @@ export interface InvestigationHistoryEntry {
   newValue: any;
   changedBy?: string | null;
   changedByName: string;
+  changedByRole?: string | null;
   changedAt: string;
 }
 
 export interface Investigation {
   _id: string;
   workId: string;
+  work?: {
+    description?: string;
+    category?: string;
+    location?: {
+      state?: string;
+      district?: string;
+      constituency?: string;
+    };
+  } | null;
   status: InvestigationStatus;
   priority: InvestigationPriority;
   assignedTo: string | null;  // User _id
