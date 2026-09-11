@@ -69,3 +69,6 @@ coverage/
 # Large binaries / Archives
 *.zip
 *.npz
+
+# Large recommendation dataset
+ML_data/mplads_recommended_works_2026-09-04.csv
