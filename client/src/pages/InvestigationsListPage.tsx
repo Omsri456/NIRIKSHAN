@@ -8,14 +8,20 @@ import { Pagination } from '@/components/ui/Pagination';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
 import { INVESTIGATION_STATUS_OPTIONS } from '@/utils/constants';
 import { formatDate, humanize } from '@/utils/format';
+import { useAuth } from '@/context/AuthContext';
 
 export function InvestigationsListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isReviewer =
+    user?.role === 'MINISTRY' || user?.role === 'STATE_AUTHORITY' || user?.role === 'ADMIN';
+
   const page = Number(searchParams.get('page') ?? '1');
   const status = searchParams.get('status') ?? '';
 
   const [result, setResult] = useState<PaginatedResponse<Investigation> | null>(null);
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -36,10 +42,28 @@ export function InvestigationsListPage() {
     }
   };
 
+  const loadPendingCount = async () => {
+    if (!isReviewer) return;
+    try {
+      const data = await investigationsApi.fetchInvestigations({
+        status: 'PENDING_VERIFICATION',
+        limit: 1,
+      });
+      setPendingCount(data.pagination.total);
+    } catch {
+      // Non-critical queue count
+    }
+  };
+
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, status]);
+
+  useEffect(() => {
+    loadPendingCount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReviewer]);
 
   function updateStatus(value: string) {
     const next = new URLSearchParams(searchParams);
@@ -76,6 +100,22 @@ export function InvestigationsListPage() {
             ))}
           </select>
         </div>
+
+        {isReviewer && (
+          <button
+            type="button"
+            className={`filter-chip ${status === 'PENDING_VERIFICATION' ? 'active' : ''}`}
+            onClick={() =>
+              updateStatus(status === 'PENDING_VERIFICATION' ? '' : 'PENDING_VERIFICATION')
+            }
+            title="Filter by cases pending verification"
+          >
+            <span>Pending Verification</span>
+            {pendingCount !== null && (
+              <span className="filter-chip-count">{pendingCount}</span>
+            )}
+          </button>
+        )}
       </div>
 
       <div className="panel">

@@ -104,15 +104,22 @@ export async function importMlRiskScores(
     throw new Error(`Failed to parse risk_scores.json: ${err.message}`);
   }
 
-  // Pre-fetch existing valid workIds from MongoDB to validate works
-  const existingWorks = await WorkModel.find({}, { workId: 1 }).lean();
-  const validWorkIdSet = new Set(existingWorks.map((w) => w.workId));
-
   const targetIdSet = options?.targetWorkIds
     ? (options.targetWorkIds instanceof Set ? options.targetWorkIds : new Set(options.targetWorkIds))
     : null;
 
-  for (const report of reports) {
+  // Pre-fetch valid workIds from MongoDB to validate works
+  // If targetIdSet is provided, query only those target works instead of all 87k works
+  const workQuery = targetIdSet ? { workId: { $in: Array.from(targetIdSet) } } : {};
+  const existingWorks = await WorkModel.find(workQuery, { workId: 1 }).lean();
+  const validWorkIdSet = new Set(existingWorks.map((w) => w.workId));
+
+  // If targeting specific works (e.g. from an admin upload), only process those reports
+  const reportsToProcess = targetIdSet
+    ? reports.filter((r) => targetIdSet.has(String(r.workId).trim()))
+    : reports;
+
+  for (const report of reportsToProcess) {
     stats.processed++;
 
     if (!report.workId || typeof report.overallRiskScore !== 'number') {

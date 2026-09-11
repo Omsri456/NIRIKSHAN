@@ -8,6 +8,7 @@ import { paginationQuerySchema } from './pagination.validator';
 export const INVESTIGATION_STATUSES = [
   'OPEN',
   'UNDER_REVIEW',
+  'PENDING_VERIFICATION',
   'RESOLVED',
   'DISMISSED',
 ] as const;

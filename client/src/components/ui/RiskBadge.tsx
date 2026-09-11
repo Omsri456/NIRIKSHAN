@@ -19,5 +19,6 @@ export function RiskBadge({ level }: { level: RiskLevel | string }) {
 }
 
 export function StatusPill({ status }: { status: string }) {
-  return <span className="status-pill">{humanize(status)}</span>;
+  const norm = (status || '').toLowerCase().replace(/\s+/g, '_');
+  return <span className={`status-pill status-${norm}`}>{humanize(status)}</span>;
 }

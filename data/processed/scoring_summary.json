@@ -1,18 +1,15 @@
 {
-  "completedAt": "2026-09-09T11:25:33.455968",
-  "totalWorks": 87287,
-  "elapsedSeconds": 1015.2,
+  "completedAt": "2026-09-11T10:34:05.737120",
+  "totalWorks": 5,
+  "totalWorksInDataset": 87285,
+  "elapsedSeconds": 24.6,
   "modelVersion": "nirikshan-ml-v1.0",
   "riskDistribution": {
     "CRITICAL": 7,
-    "HIGH": 227,
-    "MEDIUM": 31681,
+    "HIGH": 230,
+    "MEDIUM": 31676,
     "LOW": 55372
   },
-  "flagCounts": {
-    "costFlags": 5633,
-    "timelineFlags": 6447,
-    "paymentFlags": 41,
-    "similarityMatches": 49331
-  }
+  "incrementalMode": true,
+  "targetWorkIds": 5
 }

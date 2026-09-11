@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IInvestigation extends Document {
   workId: string;
-  status: 'OPEN' | 'UNDER_REVIEW' | 'RESOLVED' | 'DISMISSED';
+  status: 'OPEN' | 'UNDER_REVIEW' | 'PENDING_VERIFICATION' | 'RESOLVED' | 'DISMISSED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   assignedTo: mongoose.Types.ObjectId | null;
   notes: Array<{
@@ -27,7 +27,7 @@ const InvestigationSchema = new Schema<IInvestigation>(
     workId: { type: String, required: true, index: true },
     status: {
       type: String,
-      enum: ['OPEN', 'UNDER_REVIEW', 'RESOLVED', 'DISMISSED'],
+      enum: ['OPEN', 'UNDER_REVIEW', 'PENDING_VERIFICATION', 'RESOLVED', 'DISMISSED'],
       default: 'OPEN',
       index: true,
     },

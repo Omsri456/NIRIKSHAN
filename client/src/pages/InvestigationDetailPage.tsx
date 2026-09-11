@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import type { Investigation, InvestigationFinding, RiskAssessment, SafeUser } from '@nirikshan/shared';
+import type {
+  Investigation,
+  InvestigationFinding,
+  RiskAssessment,
+  SafeUser,
+  Work,
+} from '@nirikshan/shared';
 import { InvestigationStatus } from '@nirikshan/shared';
 import * as investigationsApi from '@/api/investigations';
 import * as worksApi from '@/api/works';
@@ -11,6 +17,7 @@ import { RiskBadge, StatusPill } from '@/components/ui/RiskBadge';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
 import { INVESTIGATION_STATUS_OPTIONS } from '@/utils/constants';
 import { formatDateTime, humanize } from '@/utils/format';
+import { useAuth } from '@/context/AuthContext';
 
 const FINDING_OPTIONS: Exclude<InvestigationFinding, null>[] = [
   'NO_ISSUE',
@@ -21,7 +28,9 @@ const FINDING_OPTIONS: Exclude<InvestigationFinding, null>[] = [
 
 export function InvestigationDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [investigation, setInvestigation] = useState<Investigation | null>(null);
+  const [work, setWork] = useState<Work | null>(null);
   const [riskAssessment, setRiskAssessment] = useState<RiskAssessment | null>(null);
   const [users, setUsers] = useState<SafeUser[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -39,12 +48,14 @@ export function InvestigationDetailPage() {
       setInvestigation(data);
 
       try {
-        const [riskData, usersData] = await Promise.all([
+        const [riskData, usersData, workData] = await Promise.all([
           worksApi.fetchWorkRisk(data.workId),
           authApi.fetchUsers(),
+          worksApi.fetchWork(data.workId),
         ]);
         setRiskAssessment(riskData);
         setUsers(usersData);
+        setWork(workData);
       } catch {
         // Non-critical supplementary data
       }
@@ -72,6 +83,53 @@ export function InvestigationDetailPage() {
       setIsSaving(false);
     }
   }
+
+  const userRole = user?.role;
+  const isHighReviewer = userRole === 'MINISTRY' || userRole === 'ADMIN';
+  const isStateAuthority = userRole === 'STATE_AUTHORITY';
+  const canClose = isHighReviewer || isStateAuthority;
+
+  const availableStatuses = INVESTIGATION_STATUS_OPTIONS.filter((s) => {
+    if (s === 'OPEN' || s === 'UNDER_REVIEW' || s === 'PENDING_VERIFICATION') {
+      return true;
+    }
+    if (s === 'RESOLVED' || s === 'DISMISSED') {
+      if (!canClose) return false;
+      if (investigation?.finding === 'REFERRED_FOR_ACTION' && isStateAuthority) {
+        return false;
+      }
+      return true;
+    }
+    return true;
+  });
+
+  const handleStatusChange = (newStatus: InvestigationStatus) => {
+    if (newStatus === 'PENDING_VERIFICATION' && !investigation?.finding) {
+      setError('A finding must be set before requesting verification.');
+      return;
+    }
+    setError(null);
+    handleUpdate({ status: newStatus });
+  };
+
+  const workDistrict = work?.location?.district?.trim().toLowerCase() || '';
+
+  const districtAuthorities = users.filter(
+    (u) =>
+      u.role === 'DISTRICT_AUTHORITY' &&
+      u.scope?.district &&
+      u.scope.district.trim().toLowerCase() === workDistrict
+  );
+
+  const stateAndMinistry = users.filter(
+    (u) => u.role === 'MINISTRY' || u.role === 'STATE_AUTHORITY' || u.role === 'ADMIN'
+  );
+
+  const otherAuthorities = users.filter(
+    (u) =>
+      !districtAuthorities.some((da) => da._id === u._id) &&
+      !stateAndMinistry.some((sm) => sm._id === u._id)
+  );
 
   async function handleAddNote(event: FormEvent) {
     event.preventDefault();
@@ -211,6 +269,24 @@ export function InvestigationDetailPage() {
                 <RiskBadge level={investigation.priority} />
               </div>
 
+              {investigation.status === 'PENDING_VERIFICATION' && (
+                <div
+                  style={{
+                    background: '#fef3c7',
+                    border: '1px solid #fde68a',
+                    borderRadius: 6,
+                    padding: '10px 12px',
+                    fontSize: '12.5px',
+                    color: '#92400e',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  <strong>Pending Verification:</strong> Proposed finding:{' '}
+                  <em>{investigation.finding ? humanize(investigation.finding) : 'None'}</em>.
+                  Awaiting State Authority or Ministry review.
+                </div>
+              )}
+
               <div className="field">
                 <label htmlFor="statusSelect">Update status</label>
                 <select
@@ -218,15 +294,20 @@ export function InvestigationDetailPage() {
                   value={investigation.status}
                   disabled={isSaving}
                   onChange={(e) =>
-                    handleUpdate({ status: e.target.value as InvestigationStatus })
+                    handleStatusChange(e.target.value as InvestigationStatus)
                   }
                 >
-                  {INVESTIGATION_STATUS_OPTIONS.map((s) => (
+                  {availableStatuses.map((s) => (
                     <option key={s} value={s}>
                       {humanize(s)}
                     </option>
                   ))}
                 </select>
+                {investigation.finding === 'REFERRED_FOR_ACTION' && isStateAuthority && (
+                  <small style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
+                    Note: Cases referred for action can only be resolved by Ministry.
+                  </small>
+                )}
               </div>
 
               <div className="field">
@@ -283,11 +364,37 @@ export function InvestigationDetailPage() {
                   }
                 >
                   <option value="">Unassigned</option>
-                  {users.map((u) => (
-                    <option key={u._id} value={u._id}>
-                      {u.name} ({humanize(u.role)})
-                    </option>
-                  ))}
+                  {districtAuthorities.length > 0 && (
+                    <optgroup
+                      label={`District Authorities (${work?.location?.district || 'Matching District'})`}
+                    >
+                      {districtAuthorities.map((u) => (
+                        <option key={u._id} value={u._id}>
+                          {u.name} (District Authority - {u.scope?.district})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {stateAndMinistry.length > 0 && (
+                    <optgroup label="State & Ministry Reviewers">
+                      {stateAndMinistry.map((u) => (
+                        <option key={u._id} value={u._id}>
+                          {u.name} ({humanize(u.role)}
+                          {u.scope?.state ? ` - ${u.scope.state}` : ''})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {otherAuthorities.length > 0 && (
+                    <optgroup label="Other Personnel">
+                      {otherAuthorities.map((u) => (
+                        <option key={u._id} value={u._id}>
+                          {u.name} ({humanize(u.role)}
+                          {u.scope?.district ? ` - ${u.scope.district}` : ''})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
               </div>
             </div>

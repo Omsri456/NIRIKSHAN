@@ -150,13 +150,25 @@ export function AdminDataImportPage() {
                 color: 'var(--text-primary)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                <span className="badge-dot" style={{ background: '#3b82f6', width: '8px', height: '8px' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                <span className="badge-dot" style={{ background: '#3b82f6', width: '8px', height: '8px', animation: 'pulse 1.5s infinite' }} />
                 <strong>Pipeline Running…</strong>
               </div>
-              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
-                Merging rows, upserting works into database, and computing 4 AI anomaly models across the full dataset (~87,000 works).
-                This may take 1 to 2 minutes.
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px' }}>
+                {[
+                  { label: 'Uploading CSV to server', done: true },
+                  { label: 'Merging into unified dataset', done: true },
+                  { label: 'Scoring new/updated works with AI models', done: false },
+                  { label: 'Importing risk scores into database', done: false },
+                ].map((step, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: step.done ? '#10b981' : 'var(--text-secondary)' }}>
+                    <span style={{ fontSize: '14px' }}>{step.done ? '✓' : '⋯'}</span>
+                    <span>{step.label}</span>
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '10px 0 0 0' }}>
+                Scoring new works with pre-trained models. This usually takes 10–30 seconds.
               </p>
             </div>
           )}

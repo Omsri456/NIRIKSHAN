@@ -7,12 +7,17 @@ Endpoints:
   POST /internal/ml/similarity     — Returns similar work matches
   GET  /internal/ml/risk-report/:workId — Returns full risk report for a work
   POST /internal/ml/batch-score    — Triggers batch scoring pipeline
+  POST /internal/ml/ingest         — Merge CSV + score (async background job)
+  GET  /internal/ml/ingest/status/{job_id} — Poll job status (internal only)
 
 These endpoints are INTERNAL and should not be publicly exposed.
 """
 
 import os
 import json
+import uuid
+import threading
+import traceback
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -47,6 +52,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ── Async Job State (internal only — Node backend polls this) ──────────
+# Tracks background ingestion jobs. Never exposed to the frontend.
+
+_jobs: dict[str, dict] = {}
+_jobs_lock = threading.Lock()
 
 
 # ── Lazy-loaded model state ────────────────────────────────────────────
@@ -299,50 +311,214 @@ async def risk_distribution():
     }
 
 
+def _run_refresh_job(job_id: str):
+    """
+    Background thread: runs full batch scoring pipeline.
+    Refreshes peer statistics cache (peer_stats.json), retrains ML models,
+    recomputes similarity embeddings, and updates all risk scores.
+    """
+    global _risk_scores_cache
+    try:
+        try:
+            from ml.app.batch_score import run_batch_scoring
+        except ModuleNotFoundError:
+            from app.batch_score import run_batch_scoring
+
+        scoring_summary = run_batch_scoring()
+        _risk_scores_cache = None
+
+        with _jobs_lock:
+            _jobs[job_id] = {
+                "status": "COMPLETED",
+                "data": {
+                    "totalScored": scoring_summary.get("totalWorks", 0),
+                    "riskDistribution": scoring_summary.get("riskDistribution", {}),
+                    "elapsedSeconds": scoring_summary.get("elapsedSeconds", 0),
+                    "modelVersion": scoring_summary.get("modelVersion", "nirikshan-ml-v1.0"),
+                    "action": "FULL_REFRESH",
+                },
+                "error": None,
+            }
+    except Exception as e:
+        traceback.print_exc()
+        with _jobs_lock:
+            _jobs[job_id] = {
+                "status": "FAILED",
+                "data": None,
+                "error": f"Full refresh failed: {str(e)}",
+            }
+
+
+@app.post("/internal/ml/refresh")
+@app.post("/internal/ml/batch-score")
+async def trigger_full_refresh():
+    """
+    Trigger a Full Refresh action:
+    Periodically refreshes peer-stats cache (peer_stats.json),
+    retrains models, recomputes similarity, and re-scores entire dataset.
+    """
+    job_id = str(uuid.uuid4())
+    with _jobs_lock:
+        _jobs[job_id] = {"status": "PROCESSING", "data": None, "error": None, "type": "FULL_REFRESH"}
+
+    thread = threading.Thread(
+        target=_run_refresh_job,
+        args=(job_id,),
+        daemon=True,
+    )
+    thread.start()
+
+    return {
+        "success": True,
+        "jobId": job_id,
+        "status": "PROCESSING",
+        "action": "FULL_REFRESH",
+        "message": "Full batch refresh pipeline started in background.",
+    }
+
+
 @app.post("/internal/ml/ingest")
 async def ingest_csv(request: Request):
     """
-    Accept raw CSV content, merge into unified_works.csv,
-    and trigger full batch scoring pipeline.
+    Accept raw CSV content, start merge + scoring in a background thread,
+    and return immediately with a jobId for polling.
+
+    The Node.js backend polls GET /internal/ml/ingest/status/{job_id}
+    until the job completes. This avoids HTTP timeout issues.
     """
     body_bytes = await request.body()
     csv_text = body_bytes.decode('utf-8', errors='replace')
     if not csv_text.strip():
         raise HTTPException(status_code=400, detail="Empty CSV content provided.")
 
+    # Generate a unique job ID (internal only — never exposed to frontend)
+    job_id = str(uuid.uuid4())
+
+    # Register the job as PROCESSING
+    with _jobs_lock:
+        _jobs[job_id] = {"status": "PROCESSING", "data": None, "error": None}
+
+    # Run the heavy work in a background thread
+    thread = threading.Thread(
+        target=_run_ingest_job,
+        args=(job_id, csv_text),
+        daemon=True,
+    )
+    thread.start()
+
+    return {
+        "success": True,
+        "jobId": job_id,
+        "status": "PROCESSING",
+    }
+
+
+def _run_ingest_job(job_id: str, csv_text: str):
+    """
+    Background thread: merges CSV and runs incremental scoring.
+    Updates _jobs[job_id] with result or error when done.
+    """
+    global _risk_scores_cache
+
     try:
         from ml.app.csv_merge import merge_unified_works_csv
-        from ml.app.batch_score import run_batch_scoring
+        from ml.app.batch_score import run_incremental_scoring, run_batch_scoring
     except ModuleNotFoundError:
         from app.csv_merge import merge_unified_works_csv
-        from app.batch_score import run_batch_scoring
+        from app.batch_score import run_incremental_scoring, run_batch_scoring
 
     try:
-        # Step 2: Merge into data/processed/unified_works.csv
+        # Step 1: Merge uploaded CSV into unified_works.csv
         merge_result = merge_unified_works_csv(csv_text)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to parse and merge CSV: {str(e)}")
+        with _jobs_lock:
+            _jobs[job_id] = {
+                "status": "FAILED",
+                "data": None,
+                "error": f"Failed to parse and merge CSV: {str(e)}",
+            }
+        return
 
     try:
-        # Step 1: Run batch scoring on full dataset
-        scoring_summary = run_batch_scoring()
+        # Step 2: Score ONLY the new/updated works (incremental mode)
+        # Falls back to full retrain if no trained models exist yet
+        target_ids = set(
+            merge_result.get("updatedWorkIds", []) +
+            merge_result.get("insertedWorkIds", [])
+        )
 
-        # Invalidate in-memory cache of risk scores
-        global _risk_scores_cache
+        if target_ids:
+            scoring_summary = run_incremental_scoring(target_work_ids=target_ids)
+        else:
+            # Edge case: no new/updated IDs → run full batch
+            scoring_summary = run_batch_scoring()
+
+        # Invalidate in-memory risk scores cache
         _risk_scores_cache = None
 
-        return {
-            "success": True,
-            "data": {
-                "updated": merge_result.get("updated", 0),
-                "inserted": merge_result.get("inserted", 0),
-                "updatedWorkIds": merge_result.get("updatedWorkIds", []),
-                "insertedWorkIds": merge_result.get("insertedWorkIds", []),
-                "totalWorksScored": scoring_summary.get("totalWorks", 0),
-                "riskDistribution": scoring_summary.get("riskDistribution", {}),
-                "elapsedSeconds": scoring_summary.get("elapsedSeconds", 0),
+        with _jobs_lock:
+            _jobs[job_id] = {
+                "status": "COMPLETED",
+                "data": {
+                    "updated": merge_result.get("updated", 0),
+                    "inserted": merge_result.get("inserted", 0),
+                    "updatedWorkIds": merge_result.get("updatedWorkIds", []),
+                    "insertedWorkIds": merge_result.get("insertedWorkIds", []),
+                    "totalWorksScored": scoring_summary.get("totalWorks", 0),
+                    "riskDistribution": scoring_summary.get("riskDistribution", {}),
+                    "elapsedSeconds": scoring_summary.get("elapsedSeconds", 0),
+                },
+                "error": None,
             }
-        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Batch scoring failed: {str(e)}")
+        traceback.print_exc()
+        with _jobs_lock:
+            _jobs[job_id] = {
+                "status": "FAILED",
+                "data": None,
+                "error": f"Batch scoring failed: {str(e)}",
+            }
+
+
+@app.get("/internal/ml/ingest/status/{job_id}")
+async def ingest_status(job_id: str):
+    """
+    Poll endpoint for ingestion job status (internal — called by Node backend only).
+    Returns the job's current status, result data, or error message.
+    """
+    with _jobs_lock:
+        job = _jobs.get(job_id)
+
+    if not job:
+        raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found.")
+
+    response = {
+        "success": job["status"] == "COMPLETED",
+        "jobId": job_id,
+        "status": job["status"],
+    }
+
+    if job["status"] == "COMPLETED":
+        response["data"] = job["data"]
+        # Clean up completed job from memory (keep last 20 for debugging)
+        _cleanup_old_jobs()
+    elif job["status"] == "FAILED":
+        response["error"] = job["error"]
+        _cleanup_old_jobs()
+
+    return response
+
+
+def _cleanup_old_jobs():
+    """Remove old completed/failed jobs, keeping the most recent 20."""
+    with _jobs_lock:
+        done_jobs = [
+            (jid, j) for jid, j in _jobs.items()
+            if j["status"] in ("COMPLETED", "FAILED")
+        ]
+        if len(done_jobs) > 20:
+            # Keep only the last 20 done jobs (simple approach)
+            to_remove = done_jobs[:-20]
+            for jid, _ in to_remove:
+                del _jobs[jid]
 

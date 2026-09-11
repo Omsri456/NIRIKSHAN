@@ -488,3 +488,88 @@ class TestCsvMergeAndBatchScore:
         from ml.app.batch_score import run_batch_scoring
         assert callable(run_batch_scoring)
 
+
+# =====================================================================
+# 10. Peer Stats & Incremental Pipeline Tests
+# =====================================================================
+
+class TestIncrementalPipeline:
+
+    def test_save_and_engineer_features_incremental(self, tmp_path):
+        from ml.app.feature_engineering import save_peer_stats, engineer_features_incremental
+        from ml.app.services.timeline_anomaly import TimelineAnomalyDetector
+
+        stats_path = str(tmp_path / "peer_stats.json")
+
+        # Population training data
+        pop_df = pd.DataFrame([
+            {
+                "workId": "p1", "state": "MAHARASHTRA", "workDescription": "Bituminous road repair",
+                "recommendedAmount": 200000.0, "implementationDays": 180, "daysSinceRecommendation": 190,
+                "workStatus": "COMPLETED", "paymentCount": 2, "totalExpenditure": 190000.0
+            },
+            {
+                "workId": "p2", "state": "MAHARASHTRA", "workDescription": "Asphalt road construction",
+                "recommendedAmount": 220000.0, "implementationDays": 200, "daysSinceRecommendation": 210,
+                "workStatus": "COMPLETED", "paymentCount": 3, "totalExpenditure": 210000.0
+            },
+            {
+                "workId": "p3", "state": "MAHARASHTRA", "workDescription": "Primary Health Clinic building",
+                "recommendedAmount": 500000.0, "implementationDays": 300, "daysSinceRecommendation": 350,
+                "workStatus": "IN_PROGRESS", "paymentCount": 1, "totalExpenditure": 100000.0
+            },
+        ])
+
+        save_peer_stats(pop_df, stats_path)
+        assert os.path.exists(stats_path)
+
+        with open(stats_path, "r", encoding="utf-8") as f:
+            stats = json.load(f)
+
+        assert "peer_cost_stats" in stats
+        assert "peer_duration" in stats
+        assert "global_stats" in stats
+        assert "state_categories" in stats
+        assert "MAHARASHTRA::Roads" in stats["peer_cost_stats"]
+        assert stats["peer_cost_stats"]["MAHARASHTRA::Roads"]["peerMedianCost"] == 210000.0
+
+        # Incremental row
+        inc_df = pd.DataFrame([
+            {
+                "workId": "new-1", "state": "MAHARASHTRA", "workDescription": "CC Road in ward 5",
+                "recommendedAmount": 210000.0, "implementationDays": 190, "daysSinceRecommendation": 200,
+                "workStatus": "COMPLETED", "paymentCount": 1, "totalExpenditure": 150000.0
+            },
+            {
+                "workId": "new-2", "state": "UNKNOWN_STATE", "workDescription": "Mystery works",
+                "recommendedAmount": 100000.0, "implementationDays": 100, "daysSinceRecommendation": 120,
+                "workStatus": "IN_PROGRESS", "paymentCount": 0, "totalExpenditure": 0.0
+            }
+        ])
+
+        result_df = engineer_features_incremental(inc_df, stats_path)
+        assert len(result_df) == 2
+        assert result_df.iloc[0]["subCategory"] == "Roads"
+        assert result_df.iloc[0]["peerMedianCost"] == 210000.0
+        assert abs(result_df.iloc[0]["costZScore"]) < 0.001  # exactly on mean
+
+        # Fallback for unknown state
+        assert result_df.iloc[1]["peerMedianCost"] == stats["global_stats"]["global_median_cost"]
+
+        # Timeline detector load_stats
+        t_detector = TimelineAnomalyDetector()
+        assert not t_detector._trained
+        t_detector.load_stats(stats)
+        assert t_detector._trained
+        score = t_detector.predict(result_df.iloc[0].to_dict())
+        assert 0.0 <= score <= 1.0
+
+    def test_refresh_endpoint(self):
+        client = TestClient(app)
+        res = client.post("/internal/ml/refresh")
+        assert res.status_code == 200
+        data = res.json()
+        assert data["success"] is True
+        assert data["action"] == "FULL_REFRESH"
+        assert "jobId" in data
+

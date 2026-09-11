@@ -65,3 +65,7 @@ logs/
 coverage/
 .nyc_output/
 .pytest_cache/
+
+# Large binaries / Archives
+*.zip
+*.npz
