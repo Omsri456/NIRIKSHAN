@@ -175,7 +175,7 @@ export function GeographicRiskHeatmap() {
         });
 
         const enrichedGeoJson = {
-          type: 'FeatureCollection',
+          type: 'FeatureCollection' as const,
           features: enrichedFeatures,
         };
 
