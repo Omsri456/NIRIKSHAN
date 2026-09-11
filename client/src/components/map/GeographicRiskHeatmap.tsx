@@ -55,6 +55,7 @@ export function GeographicRiskHeatmap() {
   const [error, setError] = useState<string | null>(null);
   const [projectSearch, setProjectSearch] = useState<string>('');
   const [isMapActive, setIsMapActive] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   // Searchable State Dropdown state
   const [stateDropdownOpen, setStateDropdownOpen] = useState<boolean>(false);
@@ -84,11 +85,82 @@ export function GeographicRiskHeatmap() {
     loadRiskData();
   }, []);
 
-  // 2. Click outside detectors (for map scroll-lock & searchable state dropdown)
+  // 2. Fullscreen toggle & handlers
+  const toggleFullscreen = async () => {
+    if (!isFullscreen) {
+      try {
+        if (mapWrapperRef.current && mapWrapperRef.current.requestFullscreen) {
+          await mapWrapperRef.current.requestFullscreen();
+        }
+      } catch (e) {
+        console.warn('Native requestFullscreen not available, fallback to CSS fullscreen', e);
+      }
+      setIsFullscreen(true);
+      setIsMapActive(true);
+      if (mapRef.current) {
+        mapRef.current.scrollZoom.enable();
+      }
+      setTimeout(() => mapRef.current?.resize(), 60);
+      setTimeout(() => mapRef.current?.resize(), 200);
+      setTimeout(() => mapRef.current?.resize(), 400);
+    } else {
+      try {
+        if (document.fullscreenElement && document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+      } catch (e) {
+        console.warn('exitFullscreen error', e);
+      }
+      setIsFullscreen(false);
+      // Return to normal page scrolling mode
+      if (mapRef.current) {
+        mapRef.current.scrollZoom.disable();
+      }
+      setIsMapActive(false);
+      setTimeout(() => mapRef.current?.resize(), 60);
+      setTimeout(() => mapRef.current?.resize(), 200);
+      setTimeout(() => mapRef.current?.resize(), 400);
+    }
+  };
+
+  // Fullscreen change and ESC key listeners
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isNowFs = !!document.fullscreenElement;
+      if (!isNowFs && isFullscreen) {
+        // Exited fullscreen via native Escape or browser UI
+        setIsFullscreen(false);
+        if (mapRef.current) {
+          mapRef.current.scrollZoom.disable();
+        }
+        setIsMapActive(false);
+        setTimeout(() => mapRef.current?.resize(), 60);
+        setTimeout(() => mapRef.current?.resize(), 200);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        toggleFullscreen();
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isFullscreen]);
+
+  // 3. Click outside detectors (for map scroll-lock & searchable state dropdown)
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
-      // Lock map zoom when clicking outside the map container
-      if (mapWrapperRef.current && !mapWrapperRef.current.contains(e.target as Node)) {
+      // If not in fullscreen, lock map zoom when clicking outside the map container
+      if (!isFullscreen && mapWrapperRef.current && !mapWrapperRef.current.contains(e.target as Node)) {
         if (mapRef.current) {
           mapRef.current.scrollZoom.disable();
         }
@@ -103,9 +175,9 @@ export function GeographicRiskHeatmap() {
 
     window.addEventListener('mousedown', handleGlobalClick);
     return () => window.removeEventListener('mousedown', handleGlobalClick);
-  }, []);
+  }, [isFullscreen]);
 
-  // 3. Activate scroll zoom on click
+  // 4. Activate scroll zoom on click
   const handleMapFocus = () => {
     if (mapRef.current && !isMapActive) {
       mapRef.current.scrollZoom.enable();
@@ -848,6 +920,29 @@ export function GeographicRiskHeatmap() {
                 Reset Map View
               </button>
             )}
+
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{
+                padding: '6px 14px',
+                height: 38,
+                borderRadius: '6px',
+                fontSize: 13,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontWeight: 600,
+                background: isFullscreen ? '#fee2e2' : undefined,
+                color: isFullscreen ? '#dc2626' : undefined,
+                borderColor: isFullscreen ? '#fca5a5' : undefined,
+              }}
+              onClick={toggleFullscreen}
+              title={isFullscreen ? 'Exit Full Screen (Esc)' : 'Open Full Screen View'}
+            >
+              <span>{isFullscreen ? '🗗' : '⛶'}</span>
+              <span>{isFullscreen ? 'Exit Fullscreen' : 'Full Screen'}</span>
+            </button>
           </div>
         </div>
 
@@ -855,8 +950,19 @@ export function GeographicRiskHeatmap() {
         <div
           ref={mapWrapperRef}
           onClick={handleMapFocus}
-          className="panel-body panel-body--tight"
-          style={{ position: 'relative', minHeight: 600 }}
+          className={`panel-body panel-body--tight ${isFullscreen ? 'heatmap-fullscreen-active' : ''}`}
+          style={{
+            position: isFullscreen ? 'fixed' : 'relative',
+            inset: isFullscreen ? 0 : undefined,
+            zIndex: isFullscreen ? 99999 : undefined,
+            width: isFullscreen ? '100vw' : '100%',
+            height: isFullscreen ? '100vh' : 'auto',
+            minHeight: isFullscreen ? '100vh' : 600,
+            background: '#ffffff',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}
         >
           {isLoading && (
             <div
@@ -893,63 +999,138 @@ export function GeographicRiskHeatmap() {
             </div>
           )}
 
-          {/* Interactive Scroll Zoom Status Badge */}
-          <div
-            onClick={handleMapFocus}
-            style={{
-              position: 'absolute',
-              top: 14,
-              left: 14,
-              zIndex: 6,
-              cursor: 'pointer',
-              padding: '6px 12px',
-              borderRadius: '20px',
-              fontSize: '12px',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.2s ease',
-              background: isMapActive ? 'rgba(16, 185, 129, 0.95)' : 'rgba(15, 23, 42, 0.82)',
-              color: '#ffffff',
-              backdropFilter: 'blur(6px)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              border: isMapActive
-                ? '1px solid rgba(255,255,255,0.4)'
-                : '1px solid rgba(255,255,255,0.15)',
-              userSelect: 'none',
-            }}
-          >
-            {isMapActive ? (
-              <>
-                <span style={{ fontSize: '13px' }}>🔓</span>
-                <span>Map Active (Scroll to zoom) • Click outside to lock</span>
-              </>
-            ) : (
-              <>
-                <span style={{ fontSize: '13px' }}>👆</span>
-                <span>Click map to enable scroll zoom</span>
-              </>
-            )}
-          </div>
-
           {/* Map Container and Overlay Drawer */}
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: selectedDistrict ? '1fr 380px' : '1fr',
-              height: 600,
+              height: isFullscreen ? '100vh' : 600,
+              width: '100%',
+              flex: 1,
               transition: 'all 0.3s ease',
             }}
           >
             {/* Map Canvas */}
-            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+            <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+              {/* Interactive Scroll Zoom Status Badge */}
+              <div
+                onClick={handleMapFocus}
+                style={{
+                  position: 'absolute',
+                  top: 14,
+                  left: 14,
+                  zIndex: 6,
+                  cursor: 'pointer',
+                  padding: '6px 12px',
+                  borderRadius: '20px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease',
+                  background: isMapActive ? 'rgba(16, 185, 129, 0.95)' : 'rgba(15, 23, 42, 0.82)',
+                  color: '#ffffff',
+                  backdropFilter: 'blur(6px)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                  border: isMapActive
+                    ? '1px solid rgba(255,255,255,0.4)'
+                    : '1px solid rgba(255,255,255,0.15)',
+                  userSelect: 'none',
+                }}
+              >
+                {isMapActive ? (
+                  <>
+                    <span style={{ fontSize: '13px' }}>🔓</span>
+                    <span>Map Active (Scroll to zoom) • {isFullscreen ? 'Press Esc to exit' : 'Click outside to lock'}</span>
+                  </>
+                ) : (
+                  <>
+                    <span style={{ fontSize: '13px' }}>👆</span>
+                    <span>Click map to enable scroll zoom</span>
+                  </>
+                )}
+              </div>
+
+              {/* Floating Top-Right Controls — only visible inside map area when in Fullscreen mode */}
+              {isFullscreen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 14,
+                    right: 52,
+                    zIndex: 6,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      resetZoom();
+                    }}
+                    title="Reset map view to default zoom"
+                    style={{
+                      cursor: 'pointer',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '12.5px',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: 'rgba(15, 23, 42, 0.85)',
+                      color: '#ffffff',
+                      backdropFilter: 'blur(6px)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                      border: '1px solid rgba(255,255,255,0.18)',
+                      transition: 'all 0.2s ease',
+                      userSelect: 'none',
+                    }}
+                  >
+                    <span style={{ fontSize: '12px' }}>🔄</span>
+                    <span>Reset View</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFullscreen();
+                    }}
+                    title="Exit Full Screen (Esc)"
+                    style={{
+                      cursor: 'pointer',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '12.5px',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: '#dc2626',
+                      color: '#ffffff',
+                      backdropFilter: 'blur(6px)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                      border: '1px solid rgba(255,255,255,0.4)',
+                      transition: 'all 0.2s ease',
+                      userSelect: 'none',
+                    }}
+                  >
+                    <span style={{ fontSize: '13px' }}>✕</span>
+                    <span>Exit Full Screen (Esc)</span>
+                  </button>
+                </div>
+              )}
+
               <div
                 ref={mapContainerRef}
                 style={{
                   width: '100%',
                   height: '100%',
-                  minHeight: 600,
+                  minHeight: isFullscreen ? '100vh' : 600,
                   background: 'var(--slate-100)',
                 }}
               />
