@@ -205,3 +205,159 @@ export async function getStates(scopeFilter: Record<string, unknown>) {
     highRiskWorks: s.highRiskWorks
   }));
 }
+
+export async function getDistrictsRiskSummary(
+  scopeFilter: Record<string, unknown>,
+  userInfo?: { role?: string; scope?: { state?: string | null; district?: string | null; constituency?: string | null } }
+) {
+  // 1. Authorized query: Scope filtering happens BEFORE district aggregation
+  const works = await WorkModel.find(scopeFilter, {
+    workId: 1,
+    description: 1,
+    category: 1,
+    'location.state': 1,
+    'location.district': 1,
+    'location.constituency': 1,
+    'financial.finalAmount': 1,
+    'financial.totalExpenditure': 1,
+    'execution.status': 1,
+  }).lean();
+
+  const workIds = works.map((w) => w.workId);
+
+  // 2. Fetch latest risk assessments for these authorized works ONLY
+  const riskAssessments = await RiskAssessmentModel.aggregate([
+    { $match: { workId: { $in: workIds } } },
+    { $sort: { generatedAt: -1 } },
+    { $group: { _id: '$workId', score: { $first: '$score' }, level: { $first: '$level' } } },
+  ]);
+
+  const riskMap = new Map<string, { score: number; level: string }>();
+  for (const r of riskAssessments) {
+    riskMap.set(r._id, { score: r.score || 0, level: r.level || 'LOW' });
+  }
+
+  // 3. District-level aggregation
+  const districtMap = new Map<string, {
+    district: string;
+    state: string;
+    totalWorks: number;
+    highRisk: number;
+    mediumRisk: number;
+    lowRisk: number;
+    totalRiskScore: number;
+    riskCount: number;
+    totalExpenditure: number;
+    totalAllocated: number;
+    projects: Array<{
+      workId: string;
+      description: string;
+      category: string;
+      status: string;
+      riskScore: number;
+      riskLevel: string;
+      finalAmount: number;
+      totalExpenditure: number;
+      constituency: string;
+    }>;
+  }>();
+
+  for (const w of works) {
+    const district = w.location?.district;
+    const state = w.location?.state;
+    if (!district || !state) continue;
+
+    const key = `${state}:::${district}`;
+    if (!districtMap.has(key)) {
+      districtMap.set(key, {
+        district,
+        state,
+        totalWorks: 0,
+        highRisk: 0,
+        mediumRisk: 0,
+        lowRisk: 0,
+        totalRiskScore: 0,
+        riskCount: 0,
+        totalExpenditure: 0,
+        totalAllocated: 0,
+        projects: [],
+      });
+    }
+
+    const dData = districtMap.get(key)!;
+    dData.totalWorks++;
+    dData.totalExpenditure += w.financial?.totalExpenditure || 0;
+    dData.totalAllocated += w.financial?.finalAmount || 0;
+
+    const risk = riskMap.get(w.workId);
+    const score = risk ? risk.score : 0;
+    const level = risk ? risk.level : 'LOW';
+
+    if (risk) {
+      dData.totalRiskScore += score;
+      dData.riskCount++;
+    }
+
+    if (level === 'HIGH' || level === 'CRITICAL') {
+      dData.highRisk++;
+    } else if (level === 'MEDIUM') {
+      dData.mediumRisk++;
+    } else {
+      dData.lowRisk++;
+    }
+
+    dData.projects.push({
+      workId: w.workId,
+      description: w.description,
+      category: w.category,
+      status: w.execution?.status || 'IN_PROGRESS',
+      riskScore: score,
+      riskLevel: level,
+      finalAmount: w.financial?.finalAmount || 0,
+      totalExpenditure: w.financial?.totalExpenditure || 0,
+      constituency: w.location?.constituency || '',
+    });
+  }
+
+  // Determine userScopeNote for MP role constraint
+  let userScopeNote: string | undefined;
+  if (userInfo?.role === 'MP' && userInfo?.scope?.constituency) {
+    userScopeNote = `Constituency Scope: ${userInfo.scope.constituency} (MP Restricted View)`;
+  }
+
+  const districts = Array.from(districtMap.values()).map((d) => {
+    const averageRiskScore = d.riskCount > 0 ? Math.round(d.totalRiskScore / d.riskCount) : 0;
+    let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'LOW';
+    if (averageRiskScore >= 75) riskLevel = 'CRITICAL';
+    else if (averageRiskScore >= 50) riskLevel = 'HIGH';
+    else if (averageRiskScore >= 25) riskLevel = 'MEDIUM';
+
+    d.projects.sort((a, b) => b.riskScore - a.riskScore);
+
+    return {
+      district: d.district,
+      state: d.state,
+      totalWorks: d.totalWorks,
+      highRisk: d.highRisk,
+      mediumRisk: d.mediumRisk,
+      lowRisk: d.lowRisk,
+      averageRiskScore,
+      riskLevel,
+      totalExpenditure: d.totalExpenditure,
+      totalAllocated: d.totalAllocated,
+      userScopeNote,
+      projects: d.projects,
+    };
+  });
+
+  return {
+    districts,
+    userScope: {
+      role: userInfo?.role || 'ANONYMOUS',
+      state: userInfo?.scope?.state || null,
+      district: userInfo?.scope?.district || null,
+      constituency: userInfo?.scope?.constituency || null,
+      scopeNote: userScopeNote || null,
+    },
+  };
+}

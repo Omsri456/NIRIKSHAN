@@ -12,9 +12,11 @@
   "dependencies": {
     "@nirikshan/shared": "*",
     "@types/d3-geo": "^3.1.1",
+    "@types/geojson": "^7946.0.16",
     "@types/topojson-client": "^3.1.5",
     "axios": "^1.7.9",
     "d3-geo": "^3.1.1",
+    "maplibre-gl": "^6.8.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^6.28.1",

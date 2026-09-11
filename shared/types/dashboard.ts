@@ -41,3 +41,43 @@ export interface RiskDistributionItem {
   count: number;
   percentage: number;
 }
+
+export interface DistrictRiskSummary {
+  district: string;
+  state: string;
+  totalWorks: number;
+  highRisk: number; // HIGH + CRITICAL
+  mediumRisk: number; // MEDIUM
+  lowRisk: number; // LOW
+  averageRiskScore: number;
+  riskLevel: RiskLevel;
+  totalExpenditure: number;
+  totalAllocated: number;
+  userScopeNote?: string; // e.g. "Constituency Scope: Mumbai North"
+  projects?: DistrictProjectItem[];
+}
+
+export interface DistrictProjectItem {
+  workId: string;
+  description: string;
+  category: string;
+  status: string;
+  riskScore: number;
+  riskLevel: RiskLevel;
+  finalAmount: number;
+  totalExpenditure: number;
+  constituency: string;
+}
+
+export interface DistrictRiskMapResponse {
+  districts: DistrictRiskSummary[];
+  userScope: {
+    role: string;
+    state: string | null;
+    district: string | null;
+    constituency: string | null;
+    scopeNote?: string | null;
+  };
+}
+
+

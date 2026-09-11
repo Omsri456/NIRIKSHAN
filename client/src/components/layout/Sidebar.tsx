@@ -4,6 +4,7 @@ import { ParliamentIllustration, SidebarBrandLogo } from '@/components/ui/BrandA
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: DashboardIcon, end: true },
+  { to: '/risk-map', label: 'Risk Heatmap', icon: MapIcon, end: false },
   { to: '/works', label: 'Works', icon: WorksIcon, end: false },
   { to: '/high-risk', label: 'High Risk', icon: RiskIcon, end: false },
   { to: '/early-warnings', label: 'Early Warnings', icon: BellIcon, end: false },
@@ -60,7 +61,22 @@ export function Sidebar() {
   );
 }
 
+function MapIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none">
+      <path
+        d="M2.5 5.5 7 3l6 3 4.5-2.5v11L13 17l-6-3-4.5 2.5v-11Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path d="M7 3v11m6-8v11" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
 function DashboardIcon({ className }: { className?: string }) {
+
   return (
     <svg className={className} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="2.5" y="2.5" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.6" />

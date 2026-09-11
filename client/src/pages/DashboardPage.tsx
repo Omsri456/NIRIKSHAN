@@ -14,7 +14,9 @@ import { StatCard } from '@/components/ui/StatCard';
 import { TrendChart } from '@/components/charts/TrendChart';
 import { RiskDistributionChart } from '@/components/charts/RiskDistributionChart';
 import { StateTable } from '@/components/charts/StateTable';
+import { GeographicRiskHeatmap } from '@/components/map/GeographicRiskHeatmap';
 import { ErrorState, LoadingState } from '@/components/ui/States';
+
 import { formatCurrencyCompact, formatNumber } from '@/utils/format';
 import { ParliamentIllustration } from '@/components/ui/BrandAssets';
 
@@ -71,7 +73,15 @@ export function DashboardPage() {
             Fund utilization, execution status and risk posture across works in your scope.
           </p>
         </div>
-        <div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Link to="/risk-map" className="btn-action-overview" style={{ background: '#fff', color: 'var(--slate-700)', borderColor: 'var(--border-card)' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+              <line x1="8" y1="2" x2="8" y2="18" />
+              <line x1="16" y1="6" x2="16" y2="22" />
+            </svg>
+            <span>Geographic Heatmap</span>
+          </Link>
           <Link to="/high-risk" className="btn-action-overview">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
@@ -155,6 +165,10 @@ export function DashboardPage() {
               </div>
               <RiskDistributionChart data={data.riskDistribution} />
             </div>
+          </div>
+
+          <div style={{ marginTop: 24 }}>
+            <GeographicRiskHeatmap />
           </div>
 
           {/* Works by State (when authorized) */}
