@@ -19,6 +19,9 @@ router.post(
 // GET /api/data-imports — Admin-only unless explicitly permitted
 router.get('/', authenticate, authorize('ADMIN'), dataImportController.list);
 
+// POST /api/data-imports/refresh — Admin-only
+router.post('/refresh', authenticate, authorize('ADMIN'), dataImportController.refresh);
+
 // GET /api/data-imports/:id — Admin-only unless explicitly permitted
 router.get('/:id', authenticate, authorize('ADMIN'), dataImportController.get);
 

@@ -51,3 +51,14 @@ export async function fetchDataImport(id: string): Promise<DataImportRecord> {
   const { data } = await apiClient.get<ApiResponse<DataImportRecord>>(`/data-imports/${id}`);
   return data.data;
 }
+
+export async function triggerPipelineRefresh(): Promise<DataImportRecord> {
+  const { data } = await apiClient.post<ApiResponse<DataImportRecord>>(
+    '/data-imports/refresh',
+    {},
+    {
+      timeout: 600000, // 10 minutes timeout
+    }
+  );
+  return data.data;
+}

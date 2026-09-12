@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { DataImportModel, IDataImport } from '../models/DataImport';
-import { triggerBatchIngest } from './mlClient';
+import { triggerBatchIngest, triggerPipelineRefresh } from './mlClient';
 import { upsertWorksFromCsv, parseCsv } from './workImport.service';
 import { importMlRiskScores } from './mlImport.service';
 import { AppError } from '../utils';
@@ -129,4 +129,70 @@ export async function getImportById(id: string) {
   return DataImportModel.findById(id)
     .populate('importedBy', 'name email role')
     .lean();
+}
+
+/**
+ * Triggers a full pipeline refresh:
+ * 1. Re-trains anomaly models on the full dataset in Python ML service.
+ * 2. Re-scores all works and refreshes peer statistics.
+ * 3. Re-imports fresh risk scores into MongoDB RiskAssessment collection.
+ */
+export async function processPipelineRefresh(
+  userId: string | mongoose.Types.ObjectId
+): Promise<IDataImport> {
+  const importRecord = await DataImportModel.create({
+    filename: 'full_pipeline_refresh',
+    dataset: 'unified_works_v1',
+    status: 'RECEIVED',
+    importedBy: userId,
+    startedAt: new Date(),
+  });
+
+  try {
+    importRecord.status = 'PROCESSING';
+    await importRecord.save();
+
+    const mlResponse = await triggerPipelineRefresh();
+    if (!mlResponse.success || !mlResponse.data) {
+      const errorMsg = mlResponse.error || 'ML pipeline refresh encountered an error.';
+      importRecord.status = 'FAILED';
+      importRecord.errorCount = 1;
+      importRecord.errorMessages = [errorMsg];
+      importRecord.completedAt = new Date();
+      await importRecord.save();
+      throw new AppError(502, 'ML_REFRESH_FAILED', errorMsg);
+    }
+
+    // Re-import fresh risk scores into MongoDB RiskAssessment collection
+    const scoreStats = await importMlRiskScores();
+
+    importRecord.status = 'COMPLETED';
+    importRecord.totalRecords =
+      mlResponse.data.totalWorksScored || mlResponse.data.totalScored || scoreStats.processed;
+    importRecord.processedRecords = scoreStats.updated + scoreStats.inserted;
+    importRecord.errorCount = scoreStats.failed;
+    importRecord.errorMessages = scoreStats.errors
+      .map((e) => `[Score] ${e.workId}: ${e.reason}`)
+      .slice(0, 10);
+    importRecord.stats = {
+      updated: scoreStats.updated,
+      inserted: scoreStats.inserted,
+      totalWorksScored: mlResponse.data.totalWorksScored || mlResponse.data.totalScored,
+      riskDistribution: mlResponse.data.riskDistribution,
+      elapsedSeconds: mlResponse.data.elapsedSeconds,
+    };
+    importRecord.completedAt = new Date();
+    await importRecord.save();
+
+    return importRecord;
+  } catch (error: any) {
+    if (importRecord.status !== 'FAILED') {
+      importRecord.status = 'FAILED';
+      importRecord.errorCount = (importRecord.errorCount || 0) + 1;
+      importRecord.errorMessages = [error.message || 'Pipeline refresh failed'];
+      importRecord.completedAt = new Date();
+      await importRecord.save();
+    }
+    throw error;
+  }
 }

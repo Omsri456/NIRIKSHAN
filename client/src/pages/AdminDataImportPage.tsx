@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { extractErrorMessage } from '@/api/client';
-import { uploadCsvData, fetchDataImports, type DataImportRecord } from '@/api/dataImports';
+import { uploadCsvData, fetchDataImports, triggerPipelineRefresh, type DataImportRecord } from '@/api/dataImports';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
 import { formatDate } from '@/utils/format';
 
@@ -14,6 +14,10 @@ export function AdminDataImportPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState<DataImportRecord | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const [isRefreshingPipeline, setIsRefreshingPipeline] = useState(false);
+  const [refreshSuccess, setRefreshSuccess] = useState<DataImportRecord | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
 
   const [imports, setImports] = useState<DataImportRecord[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
@@ -31,6 +35,21 @@ export function AdminDataImportPage() {
       setIsLoadingHistory(false);
     }
   };
+
+  async function handlePipelineRefresh() {
+    setIsRefreshingPipeline(true);
+    setRefreshError(null);
+    setRefreshSuccess(null);
+    try {
+      const result = await triggerPipelineRefresh();
+      setRefreshSuccess(result);
+      await loadHistory();
+    } catch (err) {
+      setRefreshError(extractErrorMessage(err));
+    } finally {
+      setIsRefreshingPipeline(false);
+    }
+  }
 
   useEffect(() => {
     loadHistory();
@@ -198,6 +217,101 @@ export function AdminDataImportPage() {
             </div>
           )}
         </form>
+      </div>
+
+      {/* Full Pipeline Refresh & Retraining Card */}
+      <div className="table-card" style={{ padding: '24px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ maxWidth: '650px' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '6px', color: 'var(--slate-900)' }}>
+              Full Model Retraining & Dataset Re-scoring
+            </h2>
+            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '12px', lineHeight: 1.5 }}>
+              Trigger a full ML pipeline refresh across all 86,833+ works without re-uploading a file. This recomputes feature engineering, retrains Isolation Forests, recomputes semantic embeddings, and refreshes the risk score intelligence cache.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn-table-tool"
+                style={{ backgroundColor: '#0f4c81', color: '#ffffff', borderColor: '#0f4c81', padding: '7px 16px' }}
+                onClick={handlePipelineRefresh}
+                disabled={isRefreshingPipeline || isUploading}
+              >
+                <span>{isRefreshingPipeline ? 'Retraining & Re-scoring…' : 'Trigger Full Pipeline Refresh'}</span>
+              </button>
+              {isRefreshingPipeline && (
+                <span style={{ fontSize: '12.5px', color: '#0f4c81', fontWeight: 500 }}>
+                  Processing in background thread…
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {isRefreshingPipeline && (
+          <div
+            style={{
+              marginTop: '16px',
+              padding: '16px',
+              borderRadius: '8px',
+              background: '#f0f9ff',
+              border: '1px solid #bae6fd',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+              <span className="gov-risk-badge-dot" style={{ background: '#0284c7', width: '8px', height: '8px' }} />
+              <strong style={{ color: '#0284c7' }}>Full Pipeline Refresh In Progress…</strong>
+            </div>
+            <p style={{ fontSize: '12.5px', color: '#64748b', margin: 0 }}>
+              Retraining ML anomaly models on 86,833 works and recalculating national risk distributions.
+            </p>
+          </div>
+        )}
+
+        {refreshError && <div className="form-error-banner" style={{ marginTop: '16px' }}>{refreshError}</div>}
+
+        {refreshSuccess && (
+          <div
+            style={{
+              marginTop: '16px',
+              padding: '16px',
+              borderRadius: '8px',
+              background: '#ecfdf5',
+              border: '1px solid #a7f3d0',
+              fontSize: '13px',
+            }}
+          >
+            <div style={{ color: '#047857', fontWeight: 700, marginBottom: '10px' }}>
+              ✅ Full Pipeline Refresh & Retraining Completed Successfully!
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+              <div style={{ padding: '8px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Total Works Scored</span>
+                <span className="mono" style={{ fontSize: '16px', fontWeight: 700 }}>
+                  {refreshSuccess.stats?.totalWorksScored ?? refreshSuccess.totalRecords}
+                </span>
+              </div>
+              <div style={{ padding: '8px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Critical Anomaly Flags</span>
+                <span className="mono" style={{ fontSize: '16px', fontWeight: 700, color: '#dc2626' }}>
+                  {refreshSuccess.stats?.riskDistribution?.CRITICAL ?? 0}
+                </span>
+              </div>
+              <div style={{ padding: '8px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>High Risk Flags</span>
+                <span className="mono" style={{ fontSize: '16px', fontWeight: 700, color: '#ea580c' }}>
+                  {refreshSuccess.stats?.riskDistribution?.HIGH ?? 0}
+                </span>
+              </div>
+              <div style={{ padding: '8px 12px', background: '#ffffff', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Elapsed Time</span>
+                <span className="mono" style={{ fontSize: '16px', fontWeight: 700 }}>
+                  {refreshSuccess.stats?.elapsedSeconds ? `${refreshSuccess.stats.elapsedSeconds}s` : 'N/A'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* History Table */}

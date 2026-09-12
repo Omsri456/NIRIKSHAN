@@ -332,6 +332,7 @@ def _run_refresh_job(job_id: str):
                 "status": "COMPLETED",
                 "data": {
                     "totalScored": scoring_summary.get("totalWorks", 0),
+                    "totalWorksScored": scoring_summary.get("totalWorks", 0),
                     "riskDistribution": scoring_summary.get("riskDistribution", {}),
                     "elapsedSeconds": scoring_summary.get("elapsedSeconds", 0),
                     "modelVersion": scoring_summary.get("modelVersion", "nirikshan-ml-v1.0"),

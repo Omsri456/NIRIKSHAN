@@ -59,3 +59,16 @@ export const get = asyncHandler(async (req: Request, res: Response) => {
   }
   res.json({ success: true, data });
 });
+
+/**
+ * POST /api/data-imports/refresh — Trigger full ML pipeline refresh & re-scoring (ADMIN only).
+ */
+export const refresh = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?._id;
+  if (!userId) {
+    throw new AppError(401, 'UNAUTHORIZED', 'Authentication required.');
+  }
+
+  const data = await dataImportService.processPipelineRefresh(userId);
+  res.json({ success: true, data });
+});
