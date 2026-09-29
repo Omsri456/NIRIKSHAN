@@ -1,7 +1,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { ROLE_LABELS, scopeDescriptor } from '@/utils/constants';
 import { initials } from '@/utils/format';
-import { EmblemOfIndia, IndiaTransparencyMark } from '@/components/ui/BrandAssets';
+import { EmblemOfIndia } from '@/components/ui/BrandAssets';
 import { NotificationBell } from '@/components/ui/NotificationBell';
 
 export function Topbar() {
@@ -36,10 +36,7 @@ export function Topbar() {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-        {/* 2. Institutional Branding Block: Small India + Indian Flag + DATA FOR A MORE TRANSPARENT INDIA */}
-        <div className="topbar-center-branding">
-          <IndiaTransparencyMark />
-        </div>
+
 
         {/* Notification Bell */}
         <NotificationBell />

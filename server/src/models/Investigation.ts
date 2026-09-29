@@ -22,6 +22,8 @@ export interface IInvestigation extends Document {
     changedByRole?: string | null;
     changedAt: Date;
   }>;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const InvestigationSchema = new Schema<IInvestigation>(

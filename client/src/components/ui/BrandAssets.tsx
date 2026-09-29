@@ -352,8 +352,8 @@ export function IndiaSilhouette({ className = '', style = {} }: { className?: st
 }
 
 /**
- * Top Header Institutional Brand Mark: India Silhouette + Indian Flag + Typography
- * Matches Reference Image Top Header
+ * Top Header Institutional Brand Mark: Indian Flag + India Silhouette + Typography
+ * Prominent Indian Tricolour flag with detailed Ashoka Chakra
  */
 export function IndiaTransparencyMark({ className = '', style = {} }: { className?: string; style?: React.CSSProperties }) {
   return (
@@ -367,45 +367,71 @@ export function IndiaTransparencyMark({ className = '', style = {} }: { classNam
         ...style,
       }}
     >
-      {/* Detailed India Silhouette with Delicate Network Mesh & Miniature Indian Flag */}
+      {/* India Silhouette with prominently overlaid Indian Flag */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <IndiaSilhouette />
-        {/* Miniature Waving Indian Tricolor Flag with Flagpole */}
+        {/* Indian Tricolour Flag with Ashoka Chakra */}
         <div
           style={{
             position: 'absolute',
             top: '0px',
             right: '-7px',
-            display: 'flex',
-            flexDirection: 'column',
             width: '18px',
             height: '12px',
             borderRadius: '1.5px',
             overflow: 'hidden',
             boxShadow: '0 1px 3px rgba(0,0,0,0.18)',
             border: '0.6px solid rgba(0,0,0,0.12)',
+            display: 'flex',
+            flexDirection: 'column',
           }}
-          aria-label="Indian Tricolour"
+          aria-label="Indian Tricolour Flag"
         >
-          <div style={{ flex: 1, backgroundColor: '#ff9933' }} />
+          {/* Saffron stripe */}
+          <div style={{ flex: 1, backgroundColor: '#FF9933' }} />
+          {/* White stripe with Ashoka Chakra */}
           <div
             style={{
               flex: 1,
-              backgroundColor: '#ffffff',
+              backgroundColor: '#FFFFFF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              position: 'relative',
             }}
           >
-            <div
-              style={{
-                width: '3.5px',
-                height: '3.5px',
-                borderRadius: '50%',
-                border: '0.6px solid #000080',
-              }}
-            />
+            <svg
+              width="3.5"
+              height="3.5"
+              viewBox="0 0 24 24"
+              style={{ display: 'block' }}
+            >
+              {/* Outer ring */}
+              <circle cx="12" cy="12" r="10.5" stroke="#000080" strokeWidth="1.2" fill="none" />
+              {/* Center hub */}
+              <circle cx="12" cy="12" r="1.8" fill="#000080" />
+              {/* 24 spokes of the Ashoka Chakra */}
+              {Array.from({ length: 24 }).map((_, i) => {
+                const angle = (i * 15 * Math.PI) / 180;
+                const x2 = 12 + 10 * Math.cos(angle);
+                const y2 = 12 + 10 * Math.sin(angle);
+                const x1 = 12 + 2.2 * Math.cos(angle);
+                const y1 = 12 + 2.2 * Math.sin(angle);
+                return (
+                  <line
+                    key={i}
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke="#000080"
+                    strokeWidth="0.6"
+                  />
+                );
+              })}
+            </svg>
           </div>
+          {/* Green stripe */}
           <div style={{ flex: 1, backgroundColor: '#138808' }} />
         </div>
       </div>

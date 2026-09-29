@@ -13,6 +13,8 @@ import dataImportsRoutes from './routes/dataImports.routes';
 import userRoutes from './routes/user.routes';
 import notificationRoutes from './routes/notification.routes';
 import workRecommendationRoutes from './routes/workRecommendation.routes';
+import vendorNetworkRoutes from './routes/vendorNetwork.routes';
+import modelFeedbackRoutes from './routes/modelFeedback.routes';
 
 // Middleware imports
 import { errorHandler } from './middleware/errorHandler';
@@ -41,6 +43,8 @@ app.use('/api/data-imports', dataImportsRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/recommendations', workRecommendationRoutes);
+app.use('/api/vendor-network', vendorNetworkRoutes);
+app.use('/api/model-feedback', modelFeedbackRoutes);
 
 // ── 404 Handler ──────────────────────────────────────────
 app.use((_req, res) => {

@@ -291,7 +291,7 @@
     "Chandigarh::Cremation": {
       "peerMedianCost": 2300000.0,
       "peerMeanCost": 2300000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Chandigarh::Education": {
@@ -327,7 +327,7 @@
     "Chandigarh::Sanitation": {
       "peerMedianCost": 500000.0,
       "peerMeanCost": 500000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 2
     },
     "Chandigarh::Water": {
@@ -393,7 +393,7 @@
     "Chhattisgarh::Sanitation": {
       "peerMedianCost": 1000000.0,
       "peerMeanCost": 1000000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Chhattisgarh::Water": {
@@ -405,7 +405,7 @@
     "Delhi::Building": {
       "peerMedianCost": 1239800.0,
       "peerMeanCost": 1239800.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Delhi::Community": {
@@ -423,7 +423,7 @@
     "Delhi::Health": {
       "peerMedianCost": 2009577.0,
       "peerMeanCost": 2009577.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Delhi::Lighting": {
@@ -441,7 +441,7 @@
     "Delhi::Religious": {
       "peerMedianCost": 1499915.0,
       "peerMeanCost": 1499915.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Delhi::Roads": {
@@ -519,13 +519,13 @@
     "Goa::Sanitation": {
       "peerMedianCost": 2000000.0,
       "peerMeanCost": 2000000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Goa::Water": {
       "peerMedianCost": 50000.0,
       "peerMeanCost": 50000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Gujarat::Building": {
@@ -993,7 +993,7 @@
     "Ladakh::Building": {
       "peerMedianCost": 450000.0,
       "peerMeanCost": 450000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Ladakh::Community": {
@@ -1047,7 +1047,7 @@
     "Lakshadweep::Lighting": {
       "peerMedianCost": 300000.0,
       "peerMeanCost": 300000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Lakshadweep::Other": {
@@ -1059,7 +1059,7 @@
     "Lakshadweep::Religious": {
       "peerMedianCost": 285000.0,
       "peerMeanCost": 285000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Madhya Pradesh::Building": {
@@ -1136,9 +1136,9 @@
     },
     "Maharashtra::Community": {
       "peerMedianCost": 1000000.0,
-      "peerMeanCost": 1109079.8670988656,
-      "peerStdCost": 716523.4497284375,
-      "peerCount": 1234
+      "peerMeanCost": 1107909.907841552,
+      "peerStdCost": 716200.1711988333,
+      "peerCount": 1237
     },
     "Maharashtra::Cremation": {
       "peerMedianCost": 1000000.0,
@@ -1148,9 +1148,9 @@
     },
     "Maharashtra::Education": {
       "peerMedianCost": 1000000.0,
-      "peerMeanCost": 1041432.6143497758,
-      "peerStdCost": 854811.8858052784,
-      "peerCount": 223
+      "peerMeanCost": 1035307.4026548673,
+      "peerStdCost": 851437.5477866759,
+      "peerCount": 226
     },
     "Maharashtra::Health": {
       "peerMedianCost": 1500000.0,
@@ -1160,9 +1160,9 @@
     },
     "Maharashtra::Lighting": {
       "peerMedianCost": 250000.0,
-      "peerMeanCost": 461204.3633952255,
-      "peerStdCost": 372197.52345123416,
-      "peerCount": 377
+      "peerMeanCost": 459247.4868421053,
+      "peerStdCost": 371380.46092358243,
+      "peerCount": 380
     },
     "Maharashtra::Other": {
       "peerMedianCost": 1000000.0,
@@ -1178,21 +1178,21 @@
     },
     "Maharashtra::Roads": {
       "peerMedianCost": 1000000.0,
-      "peerMeanCost": 984811.1641190668,
-      "peerStdCost": 626370.0017477431,
-      "peerCount": 1243
+      "peerMeanCost": 980893.3628389154,
+      "peerStdCost": 625490.856001319,
+      "peerCount": 1254
     },
     "Maharashtra::Sanitation": {
       "peerMedianCost": 1000000.0,
-      "peerMeanCost": 2157198.8163265307,
-      "peerStdCost": 2075733.7987762773,
-      "peerCount": 49
+      "peerMeanCost": 2119854.84,
+      "peerStdCost": 2071344.3399309875,
+      "peerCount": 50
     },
     "Maharashtra::Water": {
       "peerMedianCost": 300000.0,
-      "peerMeanCost": 550946.0674157303,
-      "peerStdCost": 584030.5368448755,
-      "peerCount": 89
+      "peerMeanCost": 534412.6315789474,
+      "peerStdCost": 568959.3866600085,
+      "peerCount": 95
     },
     "Manipur::Building": {
       "peerMedianCost": 2806225.0,
@@ -1209,7 +1209,7 @@
     "Manipur::Cremation": {
       "peerMedianCost": 1700000.0,
       "peerMeanCost": 1700000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Manipur::Education": {
@@ -1221,7 +1221,7 @@
     "Manipur::Health": {
       "peerMedianCost": 749970.0,
       "peerMeanCost": 749970.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Manipur::Other": {
@@ -1239,13 +1239,13 @@
     "Manipur::Sanitation": {
       "peerMedianCost": 3000000.0,
       "peerMeanCost": 3000000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Manipur::Water": {
       "peerMedianCost": 10000000.0,
       "peerMeanCost": 10000000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 2
     },
     "Meghalaya::Building": {
@@ -1287,7 +1287,7 @@
     "Meghalaya::Religious": {
       "peerMedianCost": 500000.0,
       "peerMeanCost": 500000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Meghalaya::Roads": {
@@ -1341,7 +1341,7 @@
     "Mizoram::Water": {
       "peerMedianCost": 250000.0,
       "peerMeanCost": 250000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Nagaland::Community": {
@@ -1455,7 +1455,7 @@
     "Puducherry::Cremation": {
       "peerMedianCost": 500000.0,
       "peerMeanCost": 500000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Puducherry::Education": {
@@ -1491,13 +1491,13 @@
     "Puducherry::Sanitation": {
       "peerMedianCost": 2500000.0,
       "peerMeanCost": 2500000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Puducherry::Water": {
       "peerMedianCost": 2492724.0,
       "peerMeanCost": 2492724.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Punjab::Building": {
@@ -1653,7 +1653,7 @@
     "Sikkim::Health": {
       "peerMedianCost": 250000.0,
       "peerMeanCost": 250000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Sikkim::Other": {
@@ -1665,7 +1665,7 @@
     "Sikkim::Religious": {
       "peerMedianCost": 250000.0,
       "peerMeanCost": 250000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Sikkim::Roads": {
@@ -1677,7 +1677,7 @@
     "Sikkim::Sanitation": {
       "peerMedianCost": 250000.0,
       "peerMeanCost": 250000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Tamil Nadu::Building": {
@@ -1869,7 +1869,7 @@
     "Tripura::Cremation": {
       "peerMedianCost": 1074000.0,
       "peerMeanCost": 1074000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Tripura::Education": {
@@ -1905,7 +1905,7 @@
     "Tripura::Sanitation": {
       "peerMedianCost": 3500000.0,
       "peerMeanCost": 3500000.0,
-      "peerStdCost": 1231173.7523664718,
+      "peerStdCost": 1230996.2275055773,
       "peerCount": 1
     },
     "Tripura::Water": {
@@ -2117,7 +2117,7 @@
     "Andhra Pradesh::Building": {
       "peerMedianDuration": 183.0,
       "peerMeanDuration": 183.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Andhra Pradesh::Community": {
       "peerMedianDuration": 260.0,
@@ -2126,13 +2126,13 @@
     },
     "Andhra Pradesh::Health": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "Andhra Pradesh::Lighting": {
       "peerMedianDuration": 196.0,
       "peerMeanDuration": 196.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Andhra Pradesh::Other": {
       "peerMedianDuration": 248.0,
@@ -2146,8 +2146,8 @@
     },
     "Andhra Pradesh::Sanitation": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "Andhra Pradesh::Water": {
       "peerMedianDuration": 508.0,
@@ -2157,27 +2157,27 @@
     "Arunachal Pradesh::Community": {
       "peerMedianDuration": 100.0,
       "peerMeanDuration": 100.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Arunachal Pradesh::Other": {
       "peerMedianDuration": 183.0,
       "peerMeanDuration": 183.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Assam::Other": {
       "peerMedianDuration": 349.0,
       "peerMeanDuration": 349.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Assam::Roads": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "Assam::Water": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "Bihar::Community": {
       "peerMedianDuration": 366.0,
@@ -2197,7 +2197,7 @@
     "Bihar::Religious": {
       "peerMedianDuration": 150.0,
       "peerMeanDuration": 150.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Bihar::Roads": {
       "peerMedianDuration": 159.0,
@@ -2212,7 +2212,7 @@
     "Chandigarh::Education": {
       "peerMedianDuration": 354.0,
       "peerMeanDuration": 354.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Chhattisgarh::Community": {
       "peerMedianDuration": 279.5,
@@ -2221,13 +2221,13 @@
     },
     "Chhattisgarh::Education": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "Chhattisgarh::Lighting": {
       "peerMedianDuration": 205.0,
       "peerMeanDuration": 205.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Chhattisgarh::Other": {
       "peerMedianDuration": 238.0,
@@ -2252,7 +2252,7 @@
     "Delhi::Lighting": {
       "peerMedianDuration": 325.0,
       "peerMeanDuration": 325.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Delhi::Other": {
       "peerMedianDuration": 193.0,
@@ -2262,12 +2262,12 @@
     "Goa::Lighting": {
       "peerMedianDuration": 53.0,
       "peerMeanDuration": 53.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Gujarat::Building": {
       "peerMedianDuration": 194.0,
       "peerMeanDuration": 194.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Gujarat::Community": {
       "peerMedianDuration": 319.0,
@@ -2277,7 +2277,7 @@
     "Gujarat::Cremation": {
       "peerMedianDuration": 396.0,
       "peerMeanDuration": 396.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Gujarat::Education": {
       "peerMedianDuration": 263.0,
@@ -2301,13 +2301,13 @@
     },
     "Gujarat::Sanitation": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "Gujarat::Water": {
       "peerMedianDuration": 257.0,
       "peerMeanDuration": 257.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Haryana::Building": {
       "peerMedianDuration": 386.0,
@@ -2321,13 +2321,13 @@
     },
     "Haryana::Education": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "Haryana::Health": {
       "peerMedianDuration": 149.0,
       "peerMeanDuration": 149.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Haryana::Other": {
       "peerMedianDuration": 172.0,
@@ -2337,7 +2337,7 @@
     "Haryana::Roads": {
       "peerMedianDuration": 226.0,
       "peerMeanDuration": 226.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Haryana::Sanitation": {
       "peerMedianDuration": 84.0,
@@ -2362,7 +2362,7 @@
     "Himachal Pradesh::Lighting": {
       "peerMedianDuration": 443.0,
       "peerMeanDuration": 443.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Himachal Pradesh::Other": {
       "peerMedianDuration": 279.0,
@@ -2377,22 +2377,22 @@
     "Jammu And Kashmir::Education": {
       "peerMedianDuration": 254.0,
       "peerMeanDuration": 254.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Jammu And Kashmir::Other": {
       "peerMedianDuration": 310.0,
       "peerMeanDuration": 310.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Jammu And Kashmir::Sanitation": {
       "peerMedianDuration": 167.0,
       "peerMeanDuration": 167.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Jammu And Kashmir::Water": {
       "peerMedianDuration": 160.0,
       "peerMeanDuration": 160.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Jharkhand::Education": {
       "peerMedianDuration": 115.0,
@@ -2407,12 +2407,12 @@
     "Jharkhand::Other": {
       "peerMedianDuration": 90.0,
       "peerMeanDuration": 90.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Jharkhand::Religious": {
       "peerMedianDuration": 212.0,
       "peerMeanDuration": 212.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Jharkhand::Roads": {
       "peerMedianDuration": 336.0,
@@ -2427,7 +2427,7 @@
     "Karnataka::Building": {
       "peerMedianDuration": 301.0,
       "peerMeanDuration": 301.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Karnataka::Community": {
       "peerMedianDuration": 216.0,
@@ -2437,7 +2437,7 @@
     "Karnataka::Cremation": {
       "peerMedianDuration": 345.0,
       "peerMeanDuration": 345.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Karnataka::Education": {
       "peerMedianDuration": 466.0,
@@ -2446,8 +2446,8 @@
     },
     "Karnataka::Health": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "Karnataka::Lighting": {
       "peerMedianDuration": 387.0,
@@ -2472,7 +2472,7 @@
     "Karnataka::Water": {
       "peerMedianDuration": 231.0,
       "peerMeanDuration": 231.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Kerala::Education": {
       "peerMedianDuration": 239.0,
@@ -2497,7 +2497,7 @@
     "Madhya Pradesh::Building": {
       "peerMedianDuration": 116.0,
       "peerMeanDuration": 116.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Madhya Pradesh::Community": {
       "peerMedianDuration": 270.0,
@@ -2506,23 +2506,23 @@
     },
     "Madhya Pradesh::Cremation": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "Madhya Pradesh::Education": {
       "peerMedianDuration": 382.0,
       "peerMeanDuration": 382.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Madhya Pradesh::Health": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "Madhya Pradesh::Lighting": {
       "peerMedianDuration": 434.0,
       "peerMeanDuration": 434.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Madhya Pradesh::Other": {
       "peerMedianDuration": 173.0,
@@ -2532,7 +2532,7 @@
     "Madhya Pradesh::Religious": {
       "peerMedianDuration": 47.0,
       "peerMeanDuration": 47.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Madhya Pradesh::Roads": {
       "peerMedianDuration": 215.0,
@@ -2547,27 +2547,27 @@
     "Maharashtra::Building": {
       "peerMedianDuration": 134.0,
       "peerMeanDuration": 134.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Maharashtra::Community": {
-      "peerMedianDuration": 287.0,
-      "peerMeanDuration": 312.6875,
-      "peerStdDuration": 85.09169941966476
+      "peerMedianDuration": 280.0,
+      "peerMeanDuration": 304.9404761904762,
+      "peerStdDuration": 91.24854858597814
     },
     "Maharashtra::Education": {
-      "peerMedianDuration": 201.0,
-      "peerMeanDuration": 206.0,
-      "peerStdDuration": 69.81403870282824
+      "peerMedianDuration": 195.0,
+      "peerMeanDuration": 175.71428571428572,
+      "peerStdDuration": 70.12539788529851
     },
     "Maharashtra::Health": {
       "peerMedianDuration": 105.0,
       "peerMeanDuration": 105.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Maharashtra::Lighting": {
-      "peerMedianDuration": 195.0,
-      "peerMeanDuration": 220.28571428571428,
-      "peerStdDuration": 78.51478477695413
+      "peerMedianDuration": 180.0,
+      "peerMeanDuration": 170.55555555555554,
+      "peerStdDuration": 105.2533979393434
     },
     "Maharashtra::Other": {
       "peerMedianDuration": 279.5,
@@ -2581,28 +2581,28 @@
     },
     "Maharashtra::Roads": {
       "peerMedianDuration": 151.0,
-      "peerMeanDuration": 168.97222222222223,
-      "peerStdDuration": 125.28949017857146
+      "peerMeanDuration": 172.5,
+      "peerStdDuration": 125.38100074906569
     },
     "Maharashtra::Water": {
-      "peerMedianDuration": 83.0,
-      "peerMeanDuration": 83.0,
-      "peerStdDuration": 18.384776310850235
+      "peerMedianDuration": 70.0,
+      "peerMeanDuration": 79.42857142857143,
+      "peerStdDuration": 17.434230150837777
     },
     "Manipur::Other": {
       "peerMedianDuration": 164.0,
       "peerMeanDuration": 164.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Meghalaya::Community": {
       "peerMedianDuration": 304.0,
       "peerMeanDuration": 304.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Meghalaya::Other": {
       "peerMedianDuration": 255.0,
       "peerMeanDuration": 255.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Meghalaya::Roads": {
       "peerMedianDuration": 611.0,
@@ -2617,12 +2617,12 @@
     "Odisha::Education": {
       "peerMedianDuration": 395.0,
       "peerMeanDuration": 395.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Odisha::Other": {
       "peerMedianDuration": 248.0,
       "peerMeanDuration": 248.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Odisha::Religious": {
       "peerMedianDuration": 362.0,
@@ -2641,13 +2641,13 @@
     },
     "Puducherry::Other": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "Puducherry::Water": {
       "peerMedianDuration": 396.0,
       "peerMeanDuration": 396.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Punjab::Building": {
       "peerMedianDuration": 247.5,
@@ -2697,7 +2697,7 @@
     "Rajasthan::Building": {
       "peerMedianDuration": 133.0,
       "peerMeanDuration": 133.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Rajasthan::Community": {
       "peerMedianDuration": 546.0,
@@ -2707,7 +2707,7 @@
     "Rajasthan::Cremation": {
       "peerMedianDuration": 617.0,
       "peerMeanDuration": 617.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Rajasthan::Education": {
       "peerMedianDuration": 308.0,
@@ -2737,12 +2737,12 @@
     "Sikkim::Education": {
       "peerMedianDuration": 62.0,
       "peerMeanDuration": 62.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Sikkim::Other": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "Tamil Nadu::Community": {
       "peerMedianDuration": 316.5,
@@ -2767,7 +2767,7 @@
     "Tamil Nadu::Religious": {
       "peerMedianDuration": 104.0,
       "peerMeanDuration": 104.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Tamil Nadu::Roads": {
       "peerMedianDuration": 227.0,
@@ -2776,8 +2776,8 @@
     },
     "Tamil Nadu::Water": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "Telangana::Community": {
       "peerMedianDuration": 194.0,
@@ -2787,7 +2787,7 @@
     "Telangana::Education": {
       "peerMedianDuration": 165.0,
       "peerMeanDuration": 165.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Telangana::Lighting": {
       "peerMedianDuration": 171.0,
@@ -2802,7 +2802,7 @@
     "Telangana::Religious": {
       "peerMedianDuration": 13.0,
       "peerMeanDuration": 13.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Telangana::Roads": {
       "peerMedianDuration": 238.0,
@@ -2811,18 +2811,18 @@
     },
     "Telangana::Water": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "The Dadra And Nagar Haveli And Daman And Diu::Water": {
       "peerMedianDuration": 232.0,
-      "peerMeanDuration": 249.9052299052299,
-      "peerStdDuration": 144.49657913128638
+      "peerMeanDuration": 248.99895506792058,
+      "peerStdDuration": 144.55436144766398
     },
     "Tripura::Education": {
       "peerMedianDuration": 366.0,
       "peerMeanDuration": 366.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Uttar Pradesh::Community": {
       "peerMedianDuration": 457.0,
@@ -2847,7 +2847,7 @@
     "Uttar Pradesh::Religious": {
       "peerMedianDuration": 281.0,
       "peerMeanDuration": 281.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Uttar Pradesh::Roads": {
       "peerMedianDuration": 329.0,
@@ -2857,7 +2857,7 @@
     "Uttar Pradesh::Sanitation": {
       "peerMedianDuration": 310.0,
       "peerMeanDuration": 310.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Uttar Pradesh::Water": {
       "peerMedianDuration": 501.5,
@@ -2867,12 +2867,12 @@
     "Uttarakhand::Community": {
       "peerMedianDuration": 393.0,
       "peerMeanDuration": 393.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Uttarakhand::Education": {
       "peerMedianDuration": 245.0,
       "peerMeanDuration": 245.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Uttarakhand::Other": {
       "peerMedianDuration": 389.0,
@@ -2882,17 +2882,17 @@
     "Uttarakhand::Religious": {
       "peerMedianDuration": 345.0,
       "peerMeanDuration": 345.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "Uttarakhand::Roads": {
       "peerMedianDuration": 204.0,
       "peerMeanDuration": 204.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "West Bengal::Building": {
       "peerMedianDuration": 471.0,
       "peerMeanDuration": 471.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "West Bengal::Community": {
       "peerMedianDuration": 473.0,
@@ -2902,7 +2902,7 @@
     "West Bengal::Education": {
       "peerMedianDuration": 531.0,
       "peerMeanDuration": 531.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "West Bengal::Lighting": {
       "peerMedianDuration": 225.0,
@@ -2922,21 +2922,21 @@
     "West Bengal::Sanitation": {
       "peerMedianDuration": 200.0,
       "peerMeanDuration": 200.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     },
     "West Bengal::Water": {
       "peerMedianDuration": 164.0,
       "peerMeanDuration": 164.0,
-      "peerStdDuration": 144.49657913128638
+      "peerStdDuration": 144.55436144766398
     }
   },
   "global_stats": {
-    "global_std_cost": 1231173.7523664718,
+    "global_std_cost": 1230996.2275055773,
     "global_median_cost": 400000.0,
-    "global_mean_cost": 629519.9071653589,
+    "global_mean_cost": 629465.0293854928,
     "global_median_duration": 232.0,
-    "global_mean_duration": 249.9052299052299,
-    "global_std_duration": 144.49657913128638,
+    "global_mean_duration": 248.99895506792058,
+    "global_std_duration": 144.55436144766398,
     "active_median_days": 244.0,
     "active_p90_days": 575.0
   },

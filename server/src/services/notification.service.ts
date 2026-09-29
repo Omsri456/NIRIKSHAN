@@ -9,9 +9,12 @@
  * project, so geographic scoping is consistent with the rest of the app.
  */
 
+import { Types } from 'mongoose';
 import { WorkModel } from '../models/Work';
 import { RiskAssessmentModel } from '../models/RiskAssessment';
 import { EarlyWarningAlertModel } from '../models/EarlyWarningAlert';
+import { InvestigationModel } from '../models/Investigation';
+import { DismissedNotificationModel } from '../models/DismissedNotification';
 import type { AppNotification, NotificationType, NotificationSeverity } from '../types/notification';
 
 // ── Helpers ───────────────────────────────────────────────────────────
@@ -52,10 +55,11 @@ function isVisibleToRole(type: NotificationType, role: string): boolean {
 interface NotificationQuery {
   role: string;
   scopeFilter: Record<string, unknown>;
+  userId?: string;
 }
 
 export async function generateNotifications(query: NotificationQuery): Promise<AppNotification[]> {
-  const { role, scopeFilter } = query;
+  const { role, scopeFilter, userId } = query;
   const notifications: AppNotification[] = [];
 
   // Fetch scoped works once — reused by all generators
@@ -92,50 +96,56 @@ export async function generateNotifications(query: NotificationQuery): Promise<A
   ]);
   const riskMap = new Map(latestRisks.map(r => [r._id, r]));
 
-  // ── 1. Critical Risk (score >= 80) ──────────────────────────────────
+  // ── 1. Critical Risk Alerts (Immediate Attention: score >= 80) ────
+  // Only surface top 3 most severe critical anomalies requiring urgent action
   if (isVisibleToRole('CRITICAL_RISK', role)) {
-    for (const risk of latestRisks) {
-      if (risk.score >= 80) {
-        const work = workMap.get(risk._id);
-        if (!work) continue;
-        notifications.push({
-          id: makeId('CRITICAL_RISK', risk._id),
-          type: 'CRITICAL_RISK',
-          severity: 'critical',
-          title: 'Critical Risk Detected',
-          message: `${truncate(work.description)} has reached Risk Score ${risk.score}.`,
-          workId: risk._id,
-          riskScore: risk.score,
-          timestamp: risk.generatedAt?.toISOString?.() || new Date(risk.generatedAt).toISOString(),
-          targetRoute: `/works/${risk._id}`,
-          state: work.location?.state || null,
-          district: work.location?.district || null,
-        });
-      }
+    const criticalRisks = latestRisks
+      .filter(r => r.score >= 80)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
+
+    for (const risk of criticalRisks) {
+      const work = workMap.get(risk._id);
+      if (!work) continue;
+      notifications.push({
+        id: makeId('CRITICAL_RISK', risk._id),
+        type: 'CRITICAL_RISK',
+        severity: 'critical',
+        title: 'Critical Risk Alert',
+        message: `${truncate(work.description)} requires urgent audit (Risk Score: ${risk.score}).`,
+        workId: risk._id,
+        riskScore: risk.score,
+        timestamp: risk.generatedAt?.toISOString?.() || new Date(risk.generatedAt).toISOString(),
+        targetRoute: `/works/${risk._id}`,
+        state: work.location?.state || null,
+        district: work.location?.district || null,
+      });
     }
   }
 
-  // ── 2. High Risk (score >= 60, < 80) ────────────────────────────────
-  if (isVisibleToRole('HIGH_RISK', role)) {
-    for (const risk of latestRisks) {
-      if (risk.score >= 60 && risk.score < 80) {
-        const work = workMap.get(risk._id);
-        if (!work) continue;
-        notifications.push({
-          id: makeId('HIGH_RISK', risk._id),
-          type: 'HIGH_RISK',
-          severity: 'high',
-          title: 'High Risk Work',
-          message: `${truncate(work.description)} currently has a risk score of ${risk.score}.`,
-          workId: risk._id,
-          riskScore: risk.score,
-          timestamp: risk.generatedAt?.toISOString?.() || new Date(risk.generatedAt).toISOString(),
-          targetRoute: `/works/${risk._id}`,
-          state: work.location?.state || null,
-          district: work.location?.district || null,
-        });
-      }
-    }
+  // ── 2. Active Investigation Inquiries ───────────────────────────────
+  // Real-world operational event: active inquiries underway in user's jurisdiction
+  const activeInvestigations = await InvestigationModel.find({
+    workId: { $in: workIds },
+    status: { $in: ['OPEN', 'UNDER_REVIEW'] },
+  }).sort({ updatedAt: -1 }).limit(3).lean();
+
+  for (const inv of activeInvestigations) {
+    const work = workMap.get(inv.workId);
+    const latestNote = inv.notes && inv.notes.length > 0 ? inv.notes[inv.notes.length - 1].content : '';
+    notifications.push({
+      id: makeId('STATUS_CHANGE', inv.workId, inv._id.toString()),
+      type: 'STATUS_CHANGE',
+      severity: inv.priority === 'CRITICAL' ? 'critical' : 'high',
+      title: `Active Investigation: ${inv.status.replace(/_/g, ' ')}`,
+      message: `Work #${inv.workId} is under inquiry: ${truncate(latestNote || work?.description || 'Review dossier')}`,
+      workId: inv.workId,
+      riskScore: riskMap.get(inv.workId)?.score ?? null,
+      timestamp: (inv.updatedAt || inv.createdAt || new Date()).toISOString(),
+      targetRoute: `/investigations/${inv._id}`,
+      state: work?.location?.state || null,
+      district: work?.location?.district || null,
+    });
   }
 
   // ── 3. Risk Escalation (from EarlyWarningAlert collection) ──────────
@@ -273,6 +283,19 @@ export async function generateNotifications(query: NotificationQuery): Promise<A
     }
   }
 
+  // ── Filter out dismissed notifications for this user ────────────────
+  let filtered = notifications;
+  if (userId) {
+    const dismissed = await DismissedNotificationModel.find(
+      { userId: new Types.ObjectId(userId) },
+      { notificationId: 1, _id: 0 }
+    ).lean();
+    const dismissedSet = new Set(dismissed.map(d => d.notificationId));
+    if (dismissedSet.size > 0) {
+      filtered = notifications.filter(n => !dismissedSet.has(n.id));
+    }
+  }
+
   // ── Sort: severity priority (critical first), then most recent ──────
   const SEVERITY_ORDER: Record<NotificationSeverity, number> = {
     critical: 0,
@@ -282,12 +305,51 @@ export async function generateNotifications(query: NotificationQuery): Promise<A
     info: 4,
   };
 
-  notifications.sort((a, b) => {
+  filtered.sort((a, b) => {
     const sevDiff = (SEVERITY_ORDER[a.severity] ?? 4) - (SEVERITY_ORDER[b.severity] ?? 4);
     if (sevDiff !== 0) return sevDiff;
     return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
   });
 
   // Cap at 50 notifications to keep responses lean
-  return notifications.slice(0, 50);
+  return filtered.slice(0, 50);
+}
+
+// ── Dismiss Operations ────────────────────────────────────────────────
+
+/**
+ * Dismiss specific notifications for a user.
+ * Uses upsert to be idempotent — dismissing the same ID twice is a no-op.
+ */
+export async function dismissNotifications(
+  userId: string,
+  notificationIds: string[]
+): Promise<number> {
+  const userObjectId = new Types.ObjectId(userId);
+  const ops = notificationIds.map(notificationId => ({
+    updateOne: {
+      filter: { userId: userObjectId, notificationId },
+      update: { $setOnInsert: { userId: userObjectId, notificationId, dismissedAt: new Date() } },
+      upsert: true,
+    },
+  }));
+
+  if (ops.length === 0) return 0;
+  const result = await DismissedNotificationModel.bulkWrite(ops);
+  return result.upsertedCount;
+}
+
+/**
+ * Dismiss ALL current notifications for a user.
+ * Generates the full notification set, then bulk-dismisses every ID.
+ */
+export async function dismissAllNotifications(
+  userId: string,
+  role: string,
+  scopeFilter: Record<string, unknown>
+): Promise<number> {
+  // Generate without userId filter to get ALL current notifications
+  const all = await generateNotifications({ role, scopeFilter });
+  const ids = all.map(n => n.id);
+  return dismissNotifications(userId, ids);
 }

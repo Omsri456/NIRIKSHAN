@@ -20,6 +20,7 @@ import { ErrorState, LoadingState } from '@/components/ui/States';
 
 import { formatCurrencyCompact, formatNumber } from '@/utils/format';
 import { ParliamentIllustration } from '@/components/ui/BrandAssets';
+import { ModelPrecisionCard } from '@/components/ui/ModelPrecisionCard';
 
 interface DashboardData {
   overview: DashboardOverview;
@@ -307,6 +308,9 @@ export function DashboardPage() {
               <RiskDistributionChart data={data.riskDistribution} />
             </div>
           </div>
+
+          {/* Ground-Truth Model Feedback & Precision */}
+          <ModelPrecisionCard />
 
           {/* Works by State (when authorized) */}
           {showStateBreakdown && (

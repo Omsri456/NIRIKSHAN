@@ -16,6 +16,7 @@ import { AdminUserApprovalPage } from '@/pages/AdminUserApprovalPage';
 import { RiskHeatmapPage } from '@/pages/RiskHeatmapPage';
 import { RecommendWorkPage } from '@/pages/RecommendWorkPage';
 import { RecommendationsReviewPage } from '@/pages/RecommendationsReviewPage';
+import { VendorNetworkPage } from '@/pages/VendorNetworkPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import './App.css';
 
@@ -40,6 +41,8 @@ function App() {
             <Route path="high-risk" element={<HighRiskPage />} />
             <Route path="early-warnings" element={<EarlyWarningsPage />} />
             <Route path="risk-map" element={<RiskHeatmapPage />} />
+            <Route path="agency-network" element={<VendorNetworkPage />} />
+            <Route path="vendor-network" element={<VendorNetworkPage />} />
             <Route path="investigations" element={<InvestigationsListPage />} />
             <Route path="investigations/:id" element={<InvestigationDetailPage />} />
             <Route path="recommend-work" element={<RecommendWorkPage />} />

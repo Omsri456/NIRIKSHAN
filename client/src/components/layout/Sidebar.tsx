@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: DashboardIcon, end: true },
   { to: '/risk-map', label: 'Risk Heatmap', icon: MapIcon, end: false },
   { to: '/works', label: 'Works', icon: WorksIcon, end: false },
+  { to: '/agency-network', label: 'Agency Network', icon: NetworkIcon, end: false },
   { to: '/high-risk', label: 'High Risk', icon: RiskIcon, end: false },
   { to: '/early-warnings', label: 'Early Warnings', icon: BellIcon, end: false },
   { to: '/investigations', label: 'Investigations', icon: InvestigationIcon, end: false },
@@ -221,4 +222,16 @@ function ReviewIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+function NetworkIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="5" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="15" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="10" cy="15" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M6.8 6.5l5.4 6.5M13.2 6.5l-5.4 6.5M7.5 5h5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 

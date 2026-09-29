@@ -1,9 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { AppNotification } from '@nirikshan/shared';
-import { fetchNotifications } from '@/api/notifications';
+import {
+  fetchNotifications,
+  dismissNotifications as apiDismiss,
+  dismissAllNotifications as apiDismissAll,
+} from '@/api/notifications';
 import { formatDateTime } from '@/utils/format';
 
+/**
+ * Local read-state tracking for instant UI feedback.
+ * Server-side DismissedNotification model is the source of truth —
+ * dismissed notifications simply won't appear in subsequent fetches.
+ * Local state only provides instant visual feedback before the next fetch.
+ */
 const LS_KEY = 'nirikshan_read_notifications';
 
 function getReadIds(): Set<string> {
@@ -61,19 +71,35 @@ export function NotificationBell() {
     }
   }, [isOpen, notifications.length, loadNotifications]);
 
-  const handleMarkAllRead = useCallback(() => {
+  const handleMarkAllRead = useCallback(async () => {
+    // Instant UI feedback
     const newReadIds = new Set(readIds);
     notifications.forEach(n => newReadIds.add(n.id));
     setReadIds(newReadIds);
     persistReadIds(newReadIds);
+
+    // Persist to server — dismissed notifications won't appear on next fetch
+    try {
+      await apiDismissAll();
+    } catch {
+      // Graceful — local state already updated
+    }
   }, [readIds, notifications]);
 
-  const handleClickNotification = useCallback((notif: AppNotification) => {
-    // Mark as read
+  const handleClickNotification = useCallback(async (notif: AppNotification) => {
+    // Instant UI feedback: mark as read locally
     const newReadIds = new Set(readIds);
     newReadIds.add(notif.id);
     setReadIds(newReadIds);
     persistReadIds(newReadIds);
+
+    // Persist to server
+    try {
+      await apiDismiss([notif.id]);
+    } catch {
+      // Graceful
+    }
+
     // Navigate and close
     setIsOpen(false);
     if (notif.targetRoute) {
@@ -137,7 +163,7 @@ export function NotificationBell() {
                 className="notif-mark-all-btn"
                 onClick={handleMarkAllRead}
               >
-                Mark all as read
+                Dismiss all
               </button>
             )}
           </div>

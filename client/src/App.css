@@ -2493,3 +2493,485 @@
     right: -12px;
   }
 }
+
+/* ============================================================
+   Vendor & Agency Network Analysis Page Styles
+   ============================================================ */
+
+.vn-container {
+  padding: 24px 32px 48px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.vn-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.vn-page-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--slate-900);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: -0.02em;
+}
+
+.vn-page-subtitle {
+  font-size: 13.5px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.vn-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.vn-stat-card {
+  background: #ffffff;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md, 8px);
+  padding: 16px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.vn-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.vn-stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--slate-900);
+  line-height: 1.1;
+}
+
+.vn-stat-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.vn-stat-danger .vn-stat-value {
+  color: #dc2626;
+}
+
+.vn-stat-warning .vn-stat-value {
+  color: #d97706;
+}
+
+.vn-stat-info .vn-stat-value {
+  color: #2563eb;
+}
+
+/* Controls */
+.vn-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.vn-toggle-group {
+  display: inline-flex;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.vn-toggle-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.vn-toggle-btn.active {
+  background: #ffffff;
+  color: var(--slate-900);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.vn-search {
+  flex: 1;
+  min-width: 220px;
+  padding: 8px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #ffffff;
+  color: var(--slate-800);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.vn-search:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+}
+
+.vn-sort-select {
+  padding: 8px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #ffffff;
+  color: var(--slate-800);
+  outline: none;
+  cursor: pointer;
+}
+
+.vn-view-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.vn-view-tab-btn.active {
+  background: #0f766e;
+  color: #ffffff;
+  border-color: #0f766e;
+}
+
+/* Table */
+.vn-table-wrap {
+  background: #ffffff;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.vn-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.vn-table th {
+  background: #f8fafc;
+  padding: 12px 16px;
+  font-weight: 700;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.vn-table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--slate-800);
+  vertical-align: middle;
+}
+
+.vn-row {
+  transition: background-color 0.1s ease;
+}
+
+.vn-row:hover {
+  background-color: #f8fafc;
+}
+
+.vn-row-expanded {
+  background-color: #f0fdfa !important;
+}
+
+.vn-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vn-expand-icon {
+  font-size: 11px;
+  color: #94a3b8;
+  width: 14px;
+}
+
+.vn-name-text {
+  font-weight: 600;
+  color: var(--slate-900);
+}
+
+.vn-investigation-badge {
+  font-size: 11px;
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  border: 1px solid #fecaca;
+}
+
+.vn-metric {
+  font-weight: 600;
+  color: #475569;
+}
+
+.vn-multi {
+  color: #d97706;
+  font-weight: 700;
+}
+
+.vn-multi-state {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.vn-risk-score {
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.vn-bar-wrap {
+  width: 100px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vn-bar-fill {
+  height: 6px;
+  border-radius: 3px;
+  min-width: 4px;
+  transition: width 0.3s ease;
+}
+
+.vn-bar-label {
+  font-size: 11.5px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.vn-expenditure {
+  font-weight: 700;
+  color: var(--slate-800);
+  white-space: nowrap;
+}
+
+.vn-concentration-pill {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid;
+}
+
+.vn-risk-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+/* Detail Row */
+.vn-detail-row td {
+  padding: 0 !important;
+  background: #fafbfc;
+}
+
+.vn-detail-panel {
+  padding: 18px 24px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.vn-detail-meta {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 14px;
+  font-size: 12.5px;
+  color: #475569;
+}
+
+.vn-detail-meta-item strong {
+  color: var(--slate-800);
+}
+
+.vn-detail-subtitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--slate-900);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.vn-works-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.vn-work-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vn-work-card:hover {
+  border-color: #0f766e;
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.1);
+  transform: translateY(-1px);
+}
+
+.vn-work-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vn-work-id {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f766e;
+}
+
+.vn-work-risk-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.vn-work-desc {
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.vn-work-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+/* Loading & Empty States */
+.vn-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.vn-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #0f766e;
+  border-radius: 50%;
+  animation: vn-spin 0.6s linear infinite;
+}
+
+@keyframes vn-spin {
+  to { transform: rotate(360deg); }
+}
+
+.vn-empty {
+  text-align: center;
+  padding: 60px 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.vn-empty-icon {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.vn-error {
+  padding: 14px 18px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 13.5px;
+}
+
+/* Interactive Network Cluster Diagram */
+.vn-graph-container {
+  background: #ffffff;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md, 8px);
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.vn-graph-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.vn-graph-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.vn-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vn-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
